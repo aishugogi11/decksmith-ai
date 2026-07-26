@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lumen — Know where to go
 
-## Getting Started
+AI-powered place discovery MVP. Lumen helps people decide *where* to go — ranking cafés and restaurants by vibe, parking, travel time, price, and amenities — not just how to get there.
 
-First, run the development server:
+Built as a highly shareable demo for X / Twitter. **Demo Mode works with zero API keys.**
+
+## Features
+
+- Cycling AI search prompts on the hero
+- Thinking animation + ranked results
+- Destination cards with match score, parking, tags, AI rationale
+- Interactive stylized map with pins + animated parking → walk route
+- Smart parking panel (garage, street, EV, accessibility)
+- Weighted ranking engine (travel, parking, reviews, price, open now, amenities)
+- Mobile-first polish for phone screen recordings
+
+## Quick start
 
 ```bash
+cd lumen
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://127.0.0.1:3000](http://127.0.0.1:3000) and tap **Try Demo**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+  app/                 # Next.js App Router shell
+  components/
+    brand/             # Logo
+    hero/              # Landing composition
+    search/            # Search box, prompt cycler, thinking UI
+    results/           # Cards, badges, results layout
+    map/               # Stylized map, pins, route animation
+    parking/           # Smart parking panel + flow
+    ui/                # Glass cards, shimmer, badges
+  lib/
+    types.ts           # Strong domain types
+    demoData.ts        # Sample London destinations
+    scoring.ts         # Weighted ranking
+    parsePreferences.ts
+    search.ts          # Swap this for live APIs later
+    prompts.ts
+```
 
-## Learn More
+## Swapping mock data for live APIs
 
-To learn more about Next.js, take a look at the following resources:
+Replace `runSearch` in `src/lib/search.ts` with:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Places API (Google / Mapbox) for inventory
+2. An LLM call for preference parsing (optional — local parser already works)
+3. Real parking providers
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Keep returning `SearchResult` so the UI stays unchanged.
 
-## Deploy on Vercel
+## Tech
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js · React · TypeScript · Tailwind CSS · Framer Motion · Lucide
