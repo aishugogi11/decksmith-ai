@@ -101,7 +101,7 @@ export function ImportModal() {
                   Bring an existing deck
                 </p>
                 <p className="text-xs text-zinc-500">
-                  Upload work you already have — then redesign it with AI
+                  Upload work you already have — then redesign it
                 </p>
               </div>
               <button
@@ -172,7 +172,7 @@ export function ImportModal() {
                           <Upload className="h-5 w-5 text-zinc-800" />
                         </div>
                         <p className="text-sm font-semibold text-zinc-950">
-                          Drop a PPTX, PDF, or Decksmith JSON
+                          Drop a PPTX, PDF, or EchoFlow JSON
                         </p>
                         <p className="max-w-xs text-center text-xs text-zinc-500">
                           Skip rebuilding from scratch — transform what you already have
@@ -283,7 +283,7 @@ function ImportSummary({
           {fileName || result.presentation.title}
         </p>
         <p className="mt-2 text-xs leading-relaxed text-emerald-900/80">
-          {c.slides} slides are editable in Decksmith. Next: redesign from
+          {c.slides} slides are editable in EchoFlow. Next: redesign from
           feedback, or strengthen with Research.
           {analysis && analysis.estimatedMinutes > 0
             ? ` (~${analysis.estimatedMinutes} min to present)`

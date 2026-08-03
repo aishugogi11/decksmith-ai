@@ -9,9 +9,9 @@ const sans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Decksmith AI — Design presentations by talking",
+  title: "EchoFlow — Design presentations by talking",
   description:
-    "Chat with AI and generate beautiful, editable presentations. Not another PowerPoint.",
+    "Design beautiful, editable presentations by talking. Not another PowerPoint.",
 };
 
 export default function RootLayout({

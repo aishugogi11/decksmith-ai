@@ -146,6 +146,20 @@ export const THEMES: Record<ThemeId, ThemeTokens> = {
     border: "rgba(255,255,255,0.12)",
     fontDisplay: "var(--font-display)",
   },
+  instagram: {
+    id: "instagram",
+    label: "Instagram",
+    description: "Square carousel — bold type, short captions",
+    slideBg:
+      "linear-gradient(145deg, #1a0a12 0%, #3b1028 42%, #c13584 120%)",
+    slideFg: "#fff7fb",
+    muted: "#f5c6de",
+    accent: "#f77737",
+    accentSoft: "rgba(247,119,55,0.2)",
+    card: "rgba(26,10,18,0.55)",
+    border: "rgba(255,255,255,0.14)",
+    fontDisplay: "var(--font-display)",
+  },
 };
 
 export const THEME_LIST = Object.values(THEMES);

@@ -92,7 +92,7 @@ export async function runOrchestrator(
   ctx: OrchestratorContext
 ): Promise<OrchestratorResult> {
   const text = ctx.text.trim();
-  let collaborator = ctx.collaborator.active
+  const collaborator = ctx.collaborator.active
     ? ctx.collaborator
     : emptyCollaboratorState();
 
@@ -209,22 +209,37 @@ export async function runOrchestrator(
     return buildFromPrompt(turn.prompt, turn.state);
   }
 
-  // 4) Specific create → smart template match + research + coach
-  if (isTemplateDiscoveryIntent(text) && text.split(/\s+/).length >= 8) {
-    return buildFromPrompt(text, collaborator);
+  // 4) Create / find a deck → always show selectable templates
+  if (isTemplateDiscoveryIntent(text) && isCreateDeckRequest(text)) {
+    return {
+      type: "recommend",
+      prompt: text,
+      reply:
+        "Here are templates that fit your brief — preview them and pick one to customize.",
+      collaborator,
+    };
   }
 
-  // 5) Short create with some signal → recommend panel
+  // 5) Other discovery phrasing (find/recommend templates) → same picker
   if (isTemplateDiscoveryIntent(text)) {
     return {
       type: "recommend",
       prompt: text,
-      reply: "I'll find templates that fit — or we can keep chatting to refine.",
+      reply: "I'll find templates that fit — pick one to load and customize.",
       collaborator,
     };
   }
 
   return { type: "fallback", collaborator };
+}
+
+/** “Create/make a pitch deck …” style requests — show template picker. */
+function isCreateDeckRequest(text: string): boolean {
+  const t = text.trim().toLowerCase();
+  return (
+    /\b(create|make|build|generate|i need|i want)\b/.test(t) &&
+    /\b(pitch|deck|presentation|slides?|template)\b/.test(t)
+  );
 }
 
 async function buildFromPrompt(

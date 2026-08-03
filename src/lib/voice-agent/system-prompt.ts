@@ -18,7 +18,7 @@ export function buildVoiceAgentSystemPrompt(
     })
     .join("\n");
 
-  return `You are a command-based presentation voice editing agent for Decksmith.
+  return `You are a command-based presentation voice editing agent for EchoFlow.
 
 Your ONLY job is to convert the user's speech into structured JSON that calls registered editor actions.
 Do NOT rewrite slides in prose. Do NOT invent actions that are not listed.
@@ -41,6 +41,7 @@ OUTPUT RULES (strict):
 - For textbox size/font: prefer adjust_textbox. "Minimize the textbox" → mode "minimize". "Make the textbox smaller/bigger/wider/narrower" → matching mode. "Font 18" on a textbox → fontSize: 18.
 - For "move it left/right/up/down" use move_object with direction.
 - For "company colors" / "our brand" use change_theme with themeId "apple" or "corporate" based on context (default apple).
+- For Instagram / IG posts / carousels use redesign_for_instagram (square frames + short captions).
 - For "outlined icons" use replace_icons_style with iconStyle "outlined".
 - When the user says "the textbox" / "it" after editing text, keep targeting that textbox via selection.
 

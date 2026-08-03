@@ -7,11 +7,11 @@ import { FREE_LIMITS } from "@/features/subscription/types";
 const PRO_PERKS = [
   "Feedback → Redesign on imported decks",
   "Research Mode — stats, sources & citations",
-  "Unlimited AI generations & voice editing",
+  "Unlimited generations & voice editing",
   "Presentation Coach with Apply actions",
   "Premium templates & advanced themes",
   "Brand Kit (coming soon)",
-  "Priority AI & unlimited exports",
+  "Priority support & unlimited exports",
 ];
 
 /**
@@ -45,7 +45,7 @@ export function UpgradeModal() {
           <div>
             <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-700">
               <Crown className="h-3.5 w-3.5" />
-              Decksmith Pro
+              EchoFlow Pro
             </p>
             <h2
               id="upgrade-title"
@@ -70,7 +70,7 @@ export function UpgradeModal() {
         <div className="space-y-4 px-6 py-5">
           <p className="text-sm text-zinc-500">
             Free includes create, voice edit, basic templates, and{" "}
-            {FREE_LIMITS.aiRequestsPerDay} AI requests/day. Pro removes limits
+            {FREE_LIMITS.aiRequestsPerDay} edits/day. Pro removes limits
             and unlocks Research, Coach, and Feedback redesign.
           </p>
           <ul className="space-y-2">

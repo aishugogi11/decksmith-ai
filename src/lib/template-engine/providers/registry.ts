@@ -1,10 +1,10 @@
-import { DecksmithTemplateProvider } from "@/lib/template-engine/providers/decksmith-provider";
+import { EchoFlowTemplateProvider } from "@/lib/template-engine/providers/decksmith-provider";
 import { OpenPackTemplateProvider } from "@/lib/template-engine/providers/open-pack-provider";
 import { userTemplateProvider } from "@/lib/template-engine/providers/user-provider";
 import type { TemplateProvider, TemplateRecord } from "@/lib/template-engine/types";
 
 const providers: TemplateProvider[] = [
-  new DecksmithTemplateProvider(),
+  new EchoFlowTemplateProvider(),
   new OpenPackTemplateProvider(),
   userTemplateProvider,
 ];

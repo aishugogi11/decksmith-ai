@@ -2,10 +2,10 @@ import { deckTemplateToRecord } from "@/lib/template-engine/metadata";
 import type { TemplateProvider, TemplateRecord } from "@/lib/template-engine/types";
 import { OPEN_TEMPLATE_PACK } from "@/lib/template-packs/open-pack";
 
-/** MIT open template pack — original Decksmith layouts for AI customization. */
+/** MIT open template pack — original EchoFlow layouts for AI customization. */
 export class OpenPackTemplateProvider implements TemplateProvider {
   readonly id = "open-pack";
-  readonly label = "Decksmith Open Pack (MIT)";
+  readonly label = "EchoFlow Open Pack (MIT)";
 
   private cache: TemplateRecord[] | null = null;
 

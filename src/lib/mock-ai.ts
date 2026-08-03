@@ -9,8 +9,8 @@ export function createQuantumDeck(themeId: ThemeId = "education"): Presentation 
       id: uid("slide"),
       layout: "hero",
       title: "Quantum Computing",
-      subtitle: "A clear guide for curious high school minds",
-      body: "From bits to qubits — without the jargon overload.",
+      subtitle: "Bits to qubits — why the next decade looks different",
+      body: "Superposition, entanglement, and real-world impact — without the jargon.",
       notes: "Welcome the class. Ask who has heard of quantum before.",
     },
     {
@@ -93,7 +93,7 @@ export function createQuantumDeck(themeId: ThemeId = "education"): Presentation 
       title: "Keep this idea",
       quote:
         "Quantum computers don’t try every answer one by one — they let possibilities interfere until the right patterns stand out.",
-      quoteAuthor: "Decksmith coach note",
+      quoteAuthor: "EchoFlow coach note",
       notes: "Pause here for questions.",
     },
     {
@@ -423,14 +423,14 @@ export function createTopicDeck(
       layout: "quote",
       title: "Takeaway",
       quote: "If they remember one sentence, make it this one.",
-      quoteAuthor: "Decksmith outline",
+      quoteAuthor: "EchoFlow outline",
     },
     {
       id: uid("slide"),
       layout: "thankyou",
       title: "Thank you",
       subtitle: "Questions & discussion",
-      body: "Tell Decksmith how to tighten, restyle, or go deeper.",
+      body: "Tell EchoFlow how to tighten, restyle, or go deeper.",
     },
   ];
 
@@ -575,7 +575,7 @@ export function fitSlideCount(deck: Presentation, count: number): Presentation {
       layout: n % 2 === 0 ? "bullets" : "section",
       title: `Going deeper · ${n}`,
       subtitle: "Extra beat from your slide count",
-      body: "Ask Decksmith to fill this slide with a specific point.",
+      body: "Ask EchoFlow to fill this slide with a specific point.",
       bullets:
         n % 2 === 0
           ? ["Supporting detail", "Example or story", "Why it matters"]
@@ -588,7 +588,7 @@ export function fitSlideCount(deck: Presentation, count: number): Presentation {
 }
 
 export const SUGGESTED_PROMPTS = [
-  "Create a modern investor pitch deck for an AI healthcare startup",
+  "Create a modern investor pitch deck for a healthcare startup",
   "Steve Jobs biography in 6 slides",
   "Quantum computing for students — 8 slides",
   "Make this more modern — Apple style.",

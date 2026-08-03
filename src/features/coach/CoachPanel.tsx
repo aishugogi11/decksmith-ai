@@ -49,12 +49,12 @@ export function CoachPanel() {
         }
         className="text-left text-[11px] font-medium text-zinc-500 underline-offset-2 hover:text-zinc-800 hover:underline"
       >
-        Came from feedback? Open AI Redesign →
+        Came from feedback? Open Redesign →
       </button>
 
       <ProGate
         feature="presentation_coach"
-        reason="Presentation Coach is available on Decksmith Pro."
+        reason="Presentation Coach is available on EchoFlow Pro."
       >
         <button
           type="button"

@@ -34,8 +34,8 @@ const STEPS: {
 }[] = [
   {
     id: "welcome",
-    title: "Decksmith in 60 seconds",
-    body: "Most AI tools generate a new deck. We’ll transform one you already have — Import → Redesign → Voice → Coach.",
+    title: "EchoFlow in 60 seconds",
+    body: "Most tools generate a new deck. We’ll transform one you already have — Import → Redesign → Voice → Coach.",
     icon: Sparkles,
   },
   {
@@ -46,7 +46,7 @@ const STEPS: {
   },
   {
     id: "redesign",
-    title: "2 · AI Redesign from feedback",
+    title: "2 · Redesign from feedback",
     body: "Investor comments are prefilled. Analyze to preview deterministic editor actions — then Apply one or all.",
     icon: MessageSquareWarning,
   },

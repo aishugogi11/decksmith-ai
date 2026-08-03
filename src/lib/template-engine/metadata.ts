@@ -31,6 +31,7 @@ const THEME_STYLE: Record<string, VisualStyle[]> = {
   luxury: ["editorial", "minimal"],
   dark: ["bold", "modern"],
   gradient: ["gradient", "bold", "modern"],
+  instagram: ["bold", "modern", "gradient"],
 };
 
 const CATEGORY_AUDIENCE: Record<TemplateCategory, string[]> = {
@@ -70,7 +71,7 @@ const INDUSTRY_HINTS: { match: RegExp; industry: string }[] = [
   { match: /nonprofit|charity|mission/i, industry: "nonprofit" },
 ];
 
-/** Enrich a Decksmith catalog entry into a provider-agnostic TemplateRecord. */
+/** Enrich a EchoFlow catalog entry into a provider-agnostic TemplateRecord. */
 export function deckTemplateToRecord(t: DeckTemplate): TemplateRecord {
   const presentationType: PresentationType =
     /biograph|steve jobs|life story/i.test(`${t.name} ${t.tags.join(" ")}`)

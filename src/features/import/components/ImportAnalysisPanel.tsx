@@ -73,7 +73,7 @@ export function ImportAnalysisPanel({
           Deck ready to transform
         </p>
         <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-          You brought existing work into Decksmith — now redesign it with
+          You brought existing work into EchoFlow — now redesign it with
           feedback, enrich it with research, or tell the editor what to change.
         </p>
       </div>

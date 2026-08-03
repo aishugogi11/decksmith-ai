@@ -41,10 +41,10 @@ export function isLiveEditCommand(text: string): boolean {
   }
 
   return (
-    /\b(this slide|the slide|make this|move the|turn this|use .+ style|more minimal|less text|add a |change (the )?theme|dark mode|timeline|apple|graph|chart|rewrite|spacing|image|company colors|brand colors|speaker notes|transition|align|cite|citation)\b/.test(
+    /\b(this slide|the slide|make this|move the|turn this|use .+ style|more minimal|less text|add a |change (the )?theme|dark mode|timeline|apple|graph|chart|rewrite|spacing|image|company colors|brand colors|speaker notes|transition|align|cite|citation|instagram|insta\b|ig post|carousel|square)\b/.test(
       t
     ) ||
-    /^(make|move|use|turn|shorten|simplify|restyle|replace|put|increase|rewrite|enlarge|generate citation)\b/.test(
+    /^(make|move|use|turn|shorten|simplify|restyle|replace|put|increase|rewrite|enlarge|generate citation|redesign)\b/.test(
       t
     )
   );
@@ -56,6 +56,7 @@ export function personalityForTheme(themeId: ThemeId): string | undefined {
     minimal: "minimal",
     dark: "bold",
     startup: "playful",
+    instagram: "playful",
     corporate: "professional",
     education: "friendly",
   };

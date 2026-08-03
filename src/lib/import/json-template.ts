@@ -2,7 +2,7 @@ import type { TemplateRecord } from "@/lib/template-engine/types";
 import type { Slide, ThemeId } from "@/lib/types";
 import { uid } from "@/lib/utils";
 
-/** Decksmith portable template JSON (import / export interchange). */
+/** EchoFlow portable template JSON (import / export interchange). */
 export type PortableTemplate = {
   name: string;
   description?: string;

@@ -14,7 +14,7 @@ type ZipLike = {
 };
 
 /**
- * PPTX → native Decksmith presentation with editable objects.
+ * PPTX → native EchoFlow presentation with editable objects.
  * Best-effort OOXML parse — not a full PowerPoint clone, but no static screenshots.
  */
 export async function parsePptxFile(file: File): Promise<ImportResult> {

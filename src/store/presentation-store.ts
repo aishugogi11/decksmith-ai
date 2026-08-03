@@ -40,6 +40,13 @@ import {
   type VoiceDebugLogEntry,
 } from "@/lib/voice-agent";
 import {
+  loadSavedProjects,
+  persistSavedProjects,
+  presentationToSavedProject,
+  upsertSavedProject,
+  type SavedProject,
+} from "@/lib/projects";
+import {
   dispatchEditorCommands,
   selectionForSlideChange,
   useEditorDebugStore,
@@ -163,6 +170,12 @@ interface PresentationState {
   setAutoSpeakReplies: (enabled: boolean) => void;
   setPersonality: (personalityId: string, themeId: ThemeId) => void;
   setDeckTitle: (title: string) => void;
+  savedProjects: SavedProject[];
+  hydrateProjects: () => void;
+  saveCurrentProject: (name?: string) => { ok: boolean; detail: string };
+  loadProject: (id: string) => { ok: boolean; detail: string };
+  renameProject: (id: string, name: string) => void;
+  deleteProject: (id: string) => void;
   setZoom: (zoom: number) => void;
   selectSlide: (id: string) => void;
   newPresentation: () => void;
@@ -184,7 +197,12 @@ interface PresentationState {
   deleteSlide: (id: string) => void;
   undo: () => void;
   redo: () => void;
-  sendMessage: (text: string) => Promise<void>;
+  sendMessage: (
+    text: string,
+    opts?: { silent?: boolean }
+  ) => Promise<void>;
+  /** Reload the demo deck (original version). */
+  restoreOriginalDeck: () => Promise<void>;
   applyDemoDeck: () => Promise<void>;
   findTemplates: (
     prompt: string,
@@ -237,6 +255,19 @@ function pushHistory(state: PresentationState): Partial<PresentationState> {
   };
 }
 
+/** Voice/chat: restore the original demo deck. */
+function isRestoreOriginalIntent(text: string): boolean {
+  const t = text.toLowerCase().replace(/[’']/g, "'");
+  return (
+    /\bgo back to (the )?original\b/.test(t) ||
+    /\brestore (the )?(original|demo|novacare)\b/.test(t) ||
+    /\breset (to )?(the )?(original|demo)\b/.test(t) ||
+    /\boriginal version\b/.test(t) ||
+    /\bback to (the )?demo\b/.test(t) ||
+    /\bback to novacare\b/.test(t)
+  );
+}
+
 function mirrorDebug(state: {
   selectedSlideId: string | null;
   editorSelection: EditorSelectionState;
@@ -285,7 +316,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
       id: uid("msg"),
       role: "assistant",
       content:
-        "Hi — I'm Decksmith. Bring an existing deck, research a topic, or paste feedback to redesign. Voice works anytime — try “Make this look like an Apple Keynote.”",
+        "Hi — I'm EchoFlow. Bring an existing deck, research a topic, or paste feedback to redesign. Voice works anytime — try “Make this look like an Apple Keynote.”",
       createdAt: new Date().toISOString(),
     },
   ],
@@ -297,6 +328,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
   recentTemplateIds: [],
   importedTemplates: [],
   catalogCache: [],
+  savedProjects: [],
   personalityId: "professional",
   autoSpeakReplies: false,
   past: [],
@@ -625,10 +657,95 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
     set((state) => ({
       presentation: {
         ...state.presentation,
-        title: title.slice(0, 100),
+        title: title.slice(0, 100) || "Untitled project",
         updatedAt: new Date().toISOString(),
       },
     })),
+
+  hydrateProjects: () => {
+    set({ savedProjects: loadSavedProjects() });
+  },
+
+  saveCurrentProject: (name) => {
+    const presentation = get().presentation;
+    if (!presentation.slides.length) {
+      return { ok: false, detail: "Add at least one slide before saving." };
+    }
+    const project = presentationToSavedProject(presentation, name);
+    const savedProjects = upsertSavedProject(get().savedProjects, project);
+    persistSavedProjects(savedProjects);
+    set({
+      savedProjects,
+      presentation: {
+        ...presentation,
+        title: project.name,
+        updatedAt: project.updatedAt,
+      },
+    });
+    return { ok: true, detail: `Saved “${project.name}”` };
+  },
+
+  loadProject: (id) => {
+    const project = get().savedProjects.find((p) => p.id === id);
+    if (!project) return { ok: false, detail: "Project not found." };
+    const presentation = structuredClone(project.presentation);
+    set({
+      presentation,
+      selectedSlideId: presentation.slides[0]?.id ?? null,
+      past: [],
+      future: [],
+      editorSelection: emptyEditorSelection(),
+      editContext: emptyEditContext(),
+      templatesOpen: false,
+      messages: [
+        ...get().messages,
+        makeAssistantMessage(
+          `Opened project “${project.name}” (${presentation.slides.length} slides).`,
+          false
+        ),
+      ],
+    });
+    return { ok: true, detail: `Opened “${project.name}”` };
+  },
+
+  renameProject: (id, name) => {
+    const trimmed = name.trim().slice(0, 100) || "Untitled project";
+    const savedProjects = get().savedProjects.map((p) =>
+      p.id === id
+        ? {
+            ...p,
+            name: trimmed,
+            updatedAt: new Date().toISOString(),
+            presentation: {
+              ...p.presentation,
+              title: trimmed,
+              updatedAt: new Date().toISOString(),
+            },
+          }
+        : p
+    );
+    persistSavedProjects(savedProjects);
+    const current = get().presentation;
+    set({
+      savedProjects,
+      ...(current.id === id
+        ? {
+            presentation: {
+              ...current,
+              title: trimmed,
+              updatedAt: new Date().toISOString(),
+            },
+          }
+        : {}),
+    });
+  },
+
+  deleteProject: (id) => {
+    const savedProjects = get().savedProjects.filter((p) => p.id !== id);
+    persistSavedProjects(savedProjects);
+    set({ savedProjects });
+  },
+
   setZoom: (zoom) => set({ zoom: Math.min(1.4, Math.max(0.5, zoom)) }),
 
   selectSlide: (id) =>
@@ -690,7 +807,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
       userTemplateProvider.setTemplates(importedTemplates);
       try {
         localStorage.setItem(
-          "decksmith-imported-templates",
+          "echoflow-imported-templates",
           JSON.stringify(importedTemplates)
         );
       } catch {
@@ -703,7 +820,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
           {
             id: uid("msg"),
             role: "assistant",
-            content: `Imported “${record.name}”. Open Design library → Uploads, or Customize with AI to redesign it.`,
+            content: `Imported “${record.name}”. Open Design library → Uploads, or Customize to redesign it.`,
             createdAt: new Date().toISOString(),
           },
         ],
@@ -735,7 +852,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
         {
           id: uid("msg"),
           role: "assistant",
-          content: `Loaded “${template.name}”. Edit any text, or use AI fill to redesign it from your brief.`,
+          content: `Loaded “${template.name}”. Edit any text, or use Customize to redesign it from your brief.`,
           createdAt: new Date().toISOString(),
         },
       ],
@@ -953,7 +1070,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
       const content = matches.length
         ? `Found ${matches.length} strong matches${
             result.intent.summary ? ` for “${result.intent.summary}”` : ""
-          }. Top picks: ${topNames}. Preview them, then Customize with AI.`
+          }. Top picks: ${topNames}. Preview them, then Customize.`
         : "I couldn’t find a strong template match. Try adding type, audience, or style — or browse the full library.";
 
       set((state) => ({
@@ -1072,24 +1189,57 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
     }
   },
 
-  sendMessage: async (text) => {
+  sendMessage: async (text, opts) => {
     const trimmed = text.trim();
     if (!trimmed || get().isGenerating || get().isRecommending) return;
+    const silent = opts?.silent === true;
+
+    // Restore original demo deck
+    if (isRestoreOriginalIntent(trimmed)) {
+      set((state) => ({
+        voiceStatus: "processing",
+        messages: silent
+          ? state.messages
+          : [
+              ...state.messages,
+              makeUserMessage(trimmed),
+              makeAssistantMessage("Restoring the original demo deck…", true),
+            ],
+      }));
+      await get().restoreOriginalDeck();
+      set((state) => ({
+        voiceStatus: "idle",
+        messages: silent
+          ? [
+              ...state.messages,
+              makeAssistantMessage("Restored the original demo deck."),
+            ]
+          : state.messages.map((m, i, arr) =>
+              i === arr.length - 1 && m.role === "assistant"
+                ? {
+                    ...m,
+                    content: "Restored the original demo deck.",
+                    streaming: false,
+                  }
+                : m
+            ),
+      }));
+      return;
+    }
 
     // Citation / Works Cited requests from chat or voice (not counted as AI gen)
     const citeIntent = parseCitationChatIntent(trimmed);
     if (citeIntent) {
-      const userMsg = makeUserMessage(trimmed);
-      if (citeIntent.kind === "slide-only") {
+      if (!silent) {
+        const userMsg = makeUserMessage(trimmed);
         set((state) => ({
           messages: [...state.messages, userMsg],
         }));
+      }
+      if (citeIntent.kind === "slide-only") {
         get().createReferencesSlide(citeIntent.slideTitle);
         return;
       }
-      set((state) => ({
-        messages: [...state.messages, userMsg],
-      }));
       get().addCitationFromText(
         citeIntent.sourceText || get().presentation.title,
         { syncSlide: citeIntent.slideTitle }
@@ -1107,12 +1257,13 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
       /* subscription optional at boot */
     }
 
-    const userMsg = makeUserMessage(trimmed);
     const assistantId = uid("msg");
     const assistant = { ...makeAssistantMessage("", true), id: assistantId };
 
     set((state) => ({
-      messages: [...state.messages, userMsg, assistant],
+      messages: silent
+        ? [...state.messages, assistant]
+        : [...state.messages, makeUserMessage(trimmed), assistant],
       isGenerating: true,
       voiceStatus:
         state.voiceStatus === "listening" ? "processing" : state.voiceStatus,
@@ -1127,6 +1278,22 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
       editContext: get().editContext,
       editorSelection: get().editorSelection,
     });
+
+    // Silent voice edits: apply changes without keeping a chat transcript of the request.
+    // Drop the placeholder assistant bubble on success; keep it only for clarifications.
+    const dropAssistant = () =>
+      set((state) => ({
+        messages: state.messages.filter((m) => m.id !== assistantId),
+      }));
+
+    const finishAssistant = (content: string) =>
+      set((state) => ({
+        messages: state.messages.map((m) =>
+          m.id === assistantId
+            ? { ...m, content, streaming: false }
+            : m
+        ),
+      }));
 
     if (result.type === "clarify") {
       set((state) => ({
@@ -1175,21 +1342,39 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
           result.presentation,
           state.coachReport
         ),
-        suggestionChips: [
-          "Move it to the top right.",
-          "Make it bigger.",
-          "Make the font 32.",
-        ],
-        messages: state.messages.map((m) =>
-          m.id === assistantId
-            ? { ...m, content: result.reply, streaming: false }
-            : m
-        ),
+        suggestionChips: silent
+          ? state.suggestionChips
+          : [
+              "Move it to the top right.",
+              "Make it bigger.",
+              "Make the font 32.",
+            ],
+        messages: silent
+          ? state.messages.filter((m) => m.id !== assistantId)
+          : state.messages.map((m) =>
+              m.id === assistantId
+                ? { ...m, content: result.reply, streaming: false }
+                : m
+            ),
       }));
       return;
     }
 
     if (result.type === "collaborate") {
+      if (silent) {
+        set((state) => ({
+          isGenerating: false,
+          voiceStatus: "idle",
+          collaborator: result.collaborator,
+          suggestionChips: result.chips,
+          messages: state.messages.map((m) =>
+            m.id === assistantId
+              ? { ...m, content: result.reply, streaming: false }
+              : m
+          ),
+        }));
+        return;
+      }
       set((state) => ({
         isGenerating: false,
         voiceStatus: "idle",
@@ -1223,16 +1408,20 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
         ),
         editContext: emptyEditContext(),
         recommendPrompt: trimmed,
-        suggestionChips: [
-          "Make this slide more minimal.",
-          "Use Apple-style design.",
-          "What might investors ask?",
-        ],
-        messages: state.messages.map((m) =>
-          m.id === assistantId
-            ? { ...m, content: result.reply, streaming: false }
-            : m
-        ),
+        suggestionChips: silent
+          ? []
+          : [
+              "Make this slide more minimal.",
+              "Use Apple-style design.",
+              "What might investors ask?",
+            ],
+        messages: silent
+          ? state.messages.filter((m) => m.id !== assistantId)
+          : state.messages.map((m) =>
+              m.id === assistantId
+                ? { ...m, content: result.reply, streaming: false }
+                : m
+            ),
       }));
       return;
     }
@@ -1262,8 +1451,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
         isGenerating: false,
         voiceStatus: "idle",
         coachReport: coach,
-        designSuggestions: buildDesignSuggestions(state.presentation, coach),
-        panelTab: "suggestions",
+        panelTab: "coach",
         messages: state.messages.map((m) =>
           m.id === assistantId
             ? { ...m, content: formatCoachReply(coach), streaming: false }
@@ -1273,7 +1461,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
       return;
     }
 
-    // Fallback — legacy mock stream for freeform edits
+    // Fall through — stream a generic assistant reply
     let content = "";
     for await (const event of mockStreamAssistant(trimmed)) {
       if (event.type === "token" && event.value) {
@@ -1296,10 +1484,46 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
     set((state) => ({
       isGenerating: false,
       voiceStatus: "idle",
-      collaborator: result.collaborator,
-      messages: state.messages.map((m) =>
-        m.id === assistantId ? { ...m, streaming: false } : m
-      ),
+      messages: silent
+        ? state.messages.filter((m) => m.id !== assistantId)
+        : state.messages.map((m) =>
+            m.id === assistantId ? { ...m, content, streaming: false } : m
+          ),
+    }));
+  },
+
+  restoreOriginalDeck: async () => {
+    const { createImportedPitchDemo } = await import("@/lib/demo/sample-deck");
+    const { analyzeImportedPresentation } = await import(
+      "@/features/import/analysis/analyze-import"
+    );
+    const { useImportStore } = await import("@/features/import/store");
+    const deck = createImportedPitchDemo();
+    const analysis = analyzeImportedPresentation(deck);
+    useImportStore.setState({
+      status: "ready",
+      fileName: deck.importMeta?.sourceFileName ?? "demo.pptx",
+      format: "pptx",
+      result: {
+        presentation: deck,
+        meta: deck.importMeta!,
+        providerId: "pptx",
+      },
+      analysis,
+      error: null,
+      progressMessage: "Original demo restored",
+      modalOpen: false,
+    });
+    set((state) => ({
+      ...pushHistory(state),
+      presentation: {
+        ...deck,
+        updatedAt: new Date().toISOString(),
+      },
+      selectedSlideId: deck.slides[0]?.id ?? null,
+      editorSelection: emptyEditorSelection(),
+      editContext: emptyEditContext(),
+      future: [],
     }));
   },
 

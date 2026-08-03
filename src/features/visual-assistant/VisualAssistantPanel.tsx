@@ -101,7 +101,7 @@ export function VisualAssistantPanel() {
           </span>
           <div>
             <p className="text-sm font-semibold text-zinc-950">
-              AI Visual Assistant
+              Visual Assistant
             </p>
             <p className="text-xs text-zinc-500">
               Ask in chat or voice — clarify, search, place

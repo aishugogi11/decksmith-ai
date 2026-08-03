@@ -7,8 +7,8 @@ import type {
 import { uid } from "@/lib/utils";
 import type { ImportResult } from "@/features/import/types";
 
-/** Full Decksmith deck JSON (native restore). */
-export type DecksmithDeckFile = {
+/** Full EchoFlow deck JSON (native restore). */
+export type EchoFlowDeckFile = {
   version?: number;
   presentation: Presentation;
   citations?: unknown[];
@@ -24,7 +24,7 @@ type Portable = {
   slides: Omit<Slide, "id">[];
 };
 
-export async function parseDecksmithJsonFile(file: File): Promise<ImportResult> {
+export async function parseEchoFlowJsonFile(file: File): Promise<ImportResult> {
   const raw = await file.text();
   let data: unknown;
   try {
@@ -40,9 +40,9 @@ export async function parseDecksmithJsonFile(file: File): Promise<ImportResult> 
     data &&
     typeof data === "object" &&
     "presentation" in data &&
-    (data as DecksmithDeckFile).presentation?.slides
+    (data as EchoFlowDeckFile).presentation?.slides
   ) {
-    const deck = data as DecksmithDeckFile;
+    const deck = data as EchoFlowDeckFile;
     const presentation: Presentation = {
       ...deck.presentation,
       id: deck.presentation.id || uid("deck"),
@@ -102,7 +102,7 @@ export async function parseDecksmithJsonFile(file: File): Promise<ImportResult> 
   const portable = data as Portable;
   if (!portable?.name || !Array.isArray(portable.slides)) {
     throw new Error(
-      "Unrecognized Decksmith JSON — expected presentation, deck file, or template."
+      "Unrecognized EchoFlow JSON — expected presentation, deck file, or template."
     );
   }
 
@@ -157,13 +157,13 @@ function countObjects(presentation: Presentation) {
 }
 
 /** Serialize a live presentation for native re-import. */
-export function presentationToDecksmithJson(presentation: Presentation): string {
-  const file: DecksmithDeckFile = {
+export function presentationToEchoFlowJson(presentation: Presentation): string {
+  const file: EchoFlowDeckFile = {
     version: 1,
     presentation,
     metadata: {
       exportedAt: new Date().toISOString(),
-      app: "decksmith-ai",
+      app: "echoflow",
     },
   };
   return JSON.stringify(file, null, 2);

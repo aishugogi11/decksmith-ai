@@ -1,5 +1,5 @@
 import { analyzeImportedPresentation } from "@/features/import/analysis/analyze-import";
-import { parseDecksmithJsonFile } from "@/features/import/parsers/decksmith/parse-json";
+import { parseEchoFlowJsonFile } from "@/features/import/parsers/decksmith/parse-json";
 import { parsePdfFile } from "@/features/import/parsers/pdf/parse-pdf";
 import { parsePptxFile } from "@/features/import/parsers/pptx/parse-pptx";
 import type {
@@ -39,7 +39,7 @@ export async function importPresentationFile(
       );
     }
     throw new Error(
-      `Unsupported file type. Use .pptx, .pdf, or Decksmith .json. Google Slides & Canva are coming soon.`
+      `Unsupported file type. Use .pptx, .pdf, or EchoFlow .json. Google Slides & Canva are coming soon.`
     );
   }
 
@@ -50,7 +50,7 @@ export async function importPresentationFile(
   let result: ImportResult;
   if (format === "pptx") result = await parsePptxFile(file);
   else if (format === "pdf") result = await parsePdfFile(file);
-  else result = await parseDecksmithJsonFile(file);
+  else result = await parseEchoFlowJsonFile(file);
 
   onProgress?.({ stage: "analyzing", message: "Preparing transform workspace…" });
   await tick(80);

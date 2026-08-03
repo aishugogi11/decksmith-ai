@@ -55,6 +55,12 @@ export function buildImportQuickActions(
       ],
     },
     {
+      id: "style_instagram",
+      label: "Instagram Carousel",
+      description: "Square frames · short captions · bold type",
+      commands: [{ action: "redesign_for_instagram", params: {} }],
+    },
+    {
       id: "style_apple",
       label: "Apple Keynote Style",
       description: "Airy Apple-style theme",

@@ -2,7 +2,7 @@ import type { Presentation, Slide } from "@/lib/types";
 import { THEMES } from "@/lib/themes";
 
 /**
- * Export a Decksmith presentation to .pptx via PPTXGenJS.
+ * Export a EchoFlow presentation to .pptx via PPTXGenJS.
  * Layouts are generated programmatically — not a Canva scrape.
  */
 export async function exportPresentationToPptx(
@@ -16,9 +16,9 @@ export async function exportPresentationToPptx(
   const theme = THEMES[presentation.themeId];
   const darkSlide = isLikelyDarkBg(theme.slideBg);
 
-  pptx.author = "Decksmith AI";
+  pptx.author = "EchoFlow";
   pptx.title = presentation.title;
-  pptx.subject = presentation.subtitle ?? "Decksmith export";
+  pptx.subject = presentation.subtitle ?? "EchoFlow export";
 
   for (const slide of presentation.slides) {
     const s = pptx.addSlide();
@@ -38,10 +38,10 @@ export async function exportPresentationToPptx(
   }
 
   const safe =
-    (filename || presentation.title || "decksmith")
+    (filename || presentation.title || "echoflow")
       .replace(/[^\w\-]+/g, "-")
       .replace(/^-|-$/g, "")
-      .slice(0, 60) || "decksmith";
+      .slice(0, 60) || "echoflow";
 
   await pptx.writeFile({ fileName: `${safe}.pptx` });
 }

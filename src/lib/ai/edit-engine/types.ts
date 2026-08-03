@@ -39,6 +39,7 @@ export function emptyEditContext(): EditConversationContext {
 /** Partial deck mutation — never regenerates the whole presentation from scratch. */
 export type EditPatch = {
   themeId?: ThemeId;
+  format?: Presentation["format"];
   title?: string;
   subtitle?: string;
   slidePatches: { id: string; patch: Partial<Slide> }[];
@@ -48,6 +49,8 @@ export type EditPatch = {
   removeSlideIds?: string[];
   /** New order of slide ids (must include all remaining slides) */
   reorder?: string[];
+  /** Replace the entire slide list (Instagram carousel redesign, etc.) */
+  slides?: Slide[];
 };
 
 export type EditCommandMatch = {

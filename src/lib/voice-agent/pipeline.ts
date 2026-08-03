@@ -36,7 +36,7 @@ export function isVoiceAgentCommand(
   }
   return (
     isLiveEditCommand(text) ||
-    /\b(textbox|text box|font|icon|object|duplicate slide|delete slide|add a slide|minimize|minimise|adjust (the )?text)\b/.test(
+    /\b(textbox|text box|font|icon|object|duplicate slide|delete slide|add a slide|minimize|minimise|adjust (the )?text|instagram|carousel)\b/.test(
       t
     )
   );

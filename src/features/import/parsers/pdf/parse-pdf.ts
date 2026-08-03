@@ -28,7 +28,7 @@ type LineBlock = {
 };
 
 /**
- * PDF → editable Decksmith slides.
+ * PDF → editable EchoFlow slides.
  * Uses Mozilla PDF.js for real text-layer extraction + page rasterization
  * so imported slides match the uploaded deck visually.
  */

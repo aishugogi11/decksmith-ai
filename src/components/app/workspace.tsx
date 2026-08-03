@@ -262,9 +262,9 @@ export function Workspace() {
           <a
             href="/app"
             className="mb-2 grid h-9 w-9 place-items-center rounded-xl bg-zinc-950 text-[10px] font-bold text-white"
-            aria-label="Decksmith home"
+            aria-label="EchoFlow home"
           >
-            DS
+            EF
           </a>
           {RAIL_PRIMARY.map(renderRailItem)}
           <div className="my-2 h-px w-8 bg-zinc-300/80" aria-hidden />
@@ -287,7 +287,7 @@ export function Workspace() {
               <Crown className="h-3.5 w-3.5" />
               {plan === "pro"
                 ? "Pro"
-                : `Free · ${usage.aiRequestsToday}/10 AI`}
+                : `Free · ${usage.aiRequestsToday}/10 edits`}
             </button>
           </header>
 

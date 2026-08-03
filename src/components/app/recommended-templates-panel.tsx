@@ -196,7 +196,7 @@ export function RecommendedTemplatesPanel() {
             {active && !isRecommending && (
               <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 px-5 py-4 sm:px-6">
                 <p className="text-xs text-zinc-500">
-                  Layouts stay intact — AI fills titles, copy, and media hints.
+                  Layouts stay intact — Customize fills titles, copy, and media hints.
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -220,7 +220,7 @@ export function RecommendedTemplatesPanel() {
                     ) : (
                       <Sparkles className="h-4 w-4" />
                     )}
-                    Customize with AI
+                    Customize
                   </Button>
                 </div>
               </footer>

@@ -38,7 +38,10 @@ export async function runFeedbackPipeline(
     message: "Generating redesign actions…",
   });
   await tick(200);
-  const actions = generateRedesignActions(presentation, issues, slideMap);
+  const actions = generateRedesignActions(presentation, issues, slideMap, {
+    sourceKind,
+    rawText: text,
+  });
 
   const summary = [
     `Parsed ${issues.length} issue(s) from ${sourceKind} feedback.`,

@@ -15,7 +15,7 @@ export {
   registerTemplateProvider,
   userTemplateProvider,
 } from "@/lib/template-engine/providers/registry";
-export { DecksmithTemplateProvider } from "@/lib/template-engine/providers/decksmith-provider";
+export { EchoFlowTemplateProvider } from "@/lib/template-engine/providers/decksmith-provider";
 export { OpenPackTemplateProvider } from "@/lib/template-engine/providers/open-pack-provider";
 export { templateRecordToPresentation } from "@/lib/template-engine/to-presentation";
 export { OPEN_PACK_LICENSE, OPEN_TEMPLATE_PACK } from "@/lib/template-packs/open-pack";

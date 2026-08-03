@@ -7,6 +7,10 @@ const THEME_STYLE: Record<string, string> = {
   corporate: "corporate professional — polished office and product imagery",
   bold: "bold contrast — graphic, high-energy visuals",
   academic: "academic — credible research and campus imagery",
+  instagram:
+    "Instagram carousel — bold color, lifestyle photography, punchy social frames",
+  startup: "startup pitch — energetic product and growth imagery",
+  gradient: "bold gradient — vivid abstract and lifestyle shots",
 };
 
 function slideContext(slide: Slide, index: number): VisualSlideContext {

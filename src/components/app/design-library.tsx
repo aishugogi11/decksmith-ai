@@ -95,7 +95,10 @@ export function DesignLibrary() {
     if (hydrated.current) return;
     hydrated.current = true;
     try {
-      const raw = localStorage.getItem("decksmith-imported-templates");
+      const raw =
+        localStorage.getItem("echoflow-imported-templates") ??
+        localStorage.getItem("glide-imported-templates") ??
+        localStorage.getItem("decksmith-imported-templates");
       if (raw) {
         const parsed = JSON.parse(raw) as TemplateRecord[];
         if (Array.isArray(parsed) && parsed.length) {
@@ -105,6 +108,7 @@ export function DesignLibrary() {
     } catch {
       /* ignore */
     }
+    usePresentationStore.getState().hydrateProjects();
     void refreshCatalog();
   }, [refreshCatalog]);
 
@@ -202,7 +206,7 @@ export function DesignLibrary() {
   async function runGenerate() {
     const text =
       query.trim() ||
-      "Create a modern investor pitch deck for an AI healthcare startup";
+      "Create a modern investor pitch deck for a healthcare startup";
     setQuery(text);
     await findTemplates(text);
     setTemplatesOpen(false);
@@ -216,7 +220,7 @@ export function DesignLibrary() {
     speech.start((transcript) => setQuery(transcript));
   }
 
-  async function useAndCustomize(id: string) {
+  async function loadAndCustomize(id: string) {
     setTemplatesOpen(false);
     usePresentationStore.setState({
       recommendPrompt: query.trim() || "Redesign this template for my brief",
@@ -353,7 +357,7 @@ export function DesignLibrary() {
                         Search
                       </Button>
                       <p className="text-[11px] text-zinc-400">
-                        {OPEN_PACK_LICENSE.spdx} open pack + curated · AI customizes
+                        {OPEN_PACK_LICENSE.spdx} open pack + curated · customizable
                       </p>
                     </div>
                   </form>
@@ -375,7 +379,7 @@ export function DesignLibrary() {
                                 template={full}
                                 badge={`${Math.round(m.score * 100)}%`}
                                 onUse={() => void loadTemplate(m.template.id)}
-                                onCustomize={() => void useAndCustomize(m.template.id)}
+                                onCustomize={() => void loadAndCustomize(m.template.id)}
                               />
                             );
                           })}
@@ -393,7 +397,7 @@ export function DesignLibrary() {
                                     template={t}
                                     wide
                                     onUse={() => void loadTemplate(t.id)}
-                                    onCustomize={() => void useAndCustomize(t.id)}
+                                    onCustomize={() => void loadAndCustomize(t.id)}
                                   />
                                 </div>
                               ))}
@@ -459,7 +463,7 @@ export function DesignLibrary() {
                                     key={t.id}
                                     template={t}
                                     onUse={() => void loadTemplate(t.id)}
-                                    onCustomize={() => void useAndCustomize(t.id)}
+                                    onCustomize={() => void loadAndCustomize(t.id)}
                                   />
                                 ))}
                               </div>
@@ -477,7 +481,7 @@ export function DesignLibrary() {
                                   key={t.id}
                                   template={t}
                                   onUse={() => void loadTemplate(t.id)}
-                                  onCustomize={() => void useAndCustomize(t.id)}
+                                  onCustomize={() => void loadAndCustomize(t.id)}
                                 />
                               ))}
                             </div>
@@ -525,10 +529,10 @@ export function DesignLibrary() {
                 <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-6">
                   <div>
                     <h3 className="text-base font-bold text-zinc-950">
-                      AI Visual Assistant
+                      Visual Assistant
                     </h3>
                     <p className="mt-1 text-sm text-zinc-500">
-                      Ask for images in chat or voice. Decksmith clarifies,
+                      Ask for images in chat or voice. EchoFlow clarifies,
                       searches from slide context, and places visuals — no
                       external image tabs.
                     </p>
@@ -566,7 +570,7 @@ export function DesignLibrary() {
                       Bring existing work
                     </h3>
                     <p className="mt-1 text-sm text-zinc-500">
-                      Upload a deck you already have. Decksmith becomes an AI
+                      Upload a deck you already have. EchoFlow becomes an
                       editor — redesign from feedback, research stronger evidence,
                       or voice-transform the whole story. Only import files you
                       have rights to use.
@@ -599,7 +603,7 @@ export function DesignLibrary() {
                     />
                     {importedTemplates.length === 0 ? (
                       <p className="mt-4 text-sm text-zinc-500">
-                        Template library imports (legacy) appear here after AI fill workflows.
+                        Template library imports (legacy) appear here after Customize workflows.
                       </p>
                     ) : (
                       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -609,7 +613,7 @@ export function DesignLibrary() {
                             template={t}
                             badge="Imported"
                             onUse={() => void loadTemplate(t.id)}
-                            onCustomize={() => void useAndCustomize(t.id)}
+                            onCustomize={() => void loadAndCustomize(t.id)}
                           />
                         ))}
                       </div>
@@ -618,11 +622,14 @@ export function DesignLibrary() {
                 </div>
               )}
 
+              {libraryTab === "projects" && <ProjectsPanel />}
+
               {libraryTab !== "templates" &&
                 libraryTab !== "uploads" &&
                 libraryTab !== "text" &&
                 libraryTab !== "research" &&
-                libraryTab !== "media" && (
+                libraryTab !== "media" &&
+                libraryTab !== "projects" && (
                 <PlaceholderTab tab={libraryTab} />
               )}
             </div>
@@ -718,8 +725,189 @@ function TemplateCard({
           className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-zinc-950 px-2 py-1.5 text-[11px] font-semibold text-white hover:bg-zinc-800"
         >
           <Sparkles className="h-3 w-3" />
-          AI fill
+          Customize
         </button>
+      </div>
+    </div>
+  );
+}
+
+function ProjectsPanel() {
+  const presentation = usePresentationStore((s) => s.presentation);
+  const savedProjects = usePresentationStore((s) => s.savedProjects);
+  const saveCurrentProject = usePresentationStore((s) => s.saveCurrentProject);
+  const loadProject = usePresentationStore((s) => s.loadProject);
+  const renameProject = usePresentationStore((s) => s.renameProject);
+  const deleteProject = usePresentationStore((s) => s.deleteProject);
+  const newPresentation = usePresentationStore((s) => s.newPresentation);
+  const setTemplatesOpen = usePresentationStore((s) => s.setTemplatesOpen);
+  const hydrateProjects = usePresentationStore((s) => s.hydrateProjects);
+
+  const [nameDraft, setNameDraft] = useState(presentation.title);
+  const [status, setStatus] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [renameDraft, setRenameDraft] = useState("");
+
+  useEffect(() => {
+    hydrateProjects();
+  }, [hydrateProjects]);
+
+  useEffect(() => {
+    setNameDraft(presentation.title);
+  }, [presentation.id, presentation.title]);
+
+  function flash(message: string) {
+    setStatus(message);
+    window.setTimeout(() => setStatus(null), 2200);
+  }
+
+  return (
+    <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-6">
+      <div>
+        <h3 className="text-base font-bold text-zinc-950">Projects</h3>
+        <p className="mt-1 text-sm text-zinc-500">
+          Name your deck and save it locally — reopen anytime from this list.
+        </p>
+      </div>
+
+      <div className="space-y-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+        <label className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+          Project name
+        </label>
+        <input
+          value={nameDraft}
+          onChange={(e) => setNameDraft(e.target.value)}
+          placeholder="e.g. Product design pitch"
+          className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-950 outline-none focus:border-zinc-400"
+        />
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              const result = saveCurrentProject(nameDraft.trim() || undefined);
+              flash(result.detail);
+            }}
+            className="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-800"
+          >
+            Save project
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              newPresentation();
+              setNameDraft("Untitled project");
+              flash("Started a new blank project.");
+            }}
+            className="inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-semibold text-zinc-800 hover:border-zinc-400"
+          >
+            New project
+          </button>
+        </div>
+        {status && (
+          <p className="text-[11px] font-medium text-emerald-700">{status}</p>
+        )}
+      </div>
+
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+          Saved ({savedProjects.length})
+        </p>
+        {savedProjects.length === 0 ? (
+          <p className="mt-3 text-sm text-zinc-500">
+            No saved projects yet. Name this deck and click Save project.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {savedProjects.map((project) => {
+              const active = project.id === presentation.id;
+              const editing = editingId === project.id;
+              return (
+                <li
+                  key={project.id}
+                  className={cn(
+                    "rounded-2xl border px-3 py-3",
+                    active
+                      ? "border-zinc-950 bg-white"
+                      : "border-zinc-200 bg-white"
+                  )}
+                >
+                  {editing ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <input
+                        value={renameDraft}
+                        onChange={(e) => setRenameDraft(e.target.value)}
+                        className="min-w-0 flex-1 rounded-lg border border-zinc-200 px-2 py-1.5 text-sm outline-none focus:border-zinc-400"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            renameProject(project.id, renameDraft);
+                            setEditingId(null);
+                            flash(`Renamed to “${renameDraft.trim() || "Untitled project"}”`);
+                          }
+                          if (e.key === "Escape") setEditingId(null);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="rounded-lg bg-zinc-950 px-2 py-1.5 text-[11px] font-semibold text-white"
+                        onClick={() => {
+                          renameProject(project.id, renameDraft);
+                          setEditingId(null);
+                          flash(`Renamed to “${renameDraft.trim() || "Untitled project"}”`);
+                        }}
+                      >
+                        Done
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-start justify-between gap-3">
+                      <button
+                        type="button"
+                        className="min-w-0 flex-1 text-left"
+                        onClick={() => {
+                          const result = loadProject(project.id);
+                          flash(result.detail);
+                          if (result.ok) setTemplatesOpen(false);
+                        }}
+                      >
+                        <p className="truncate text-sm font-semibold text-zinc-950">
+                          {project.name}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-zinc-500">
+                          {project.presentation.slides.length} slides ·{" "}
+                          {new Date(project.updatedAt).toLocaleString()}
+                          {active ? " · Open" : ""}
+                        </p>
+                      </button>
+                      <div className="flex shrink-0 gap-1">
+                        <button
+                          type="button"
+                          className="rounded-lg px-2 py-1 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-100"
+                          onClick={() => {
+                            setEditingId(project.id);
+                            setRenameDraft(project.name);
+                          }}
+                        >
+                          Rename
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-lg px-2 py-1 text-[11px] font-semibold text-red-600 hover:bg-red-50"
+                          onClick={() => {
+                            deleteProject(project.id);
+                            flash(`Deleted “${project.name}”`);
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </div>
   );
@@ -727,7 +915,10 @@ function TemplateCard({
 
 function PlaceholderTab({ tab }: { tab: LibraryTab }) {
   const copy: Record<
-    Exclude<LibraryTab, "templates" | "uploads" | "text" | "research" | "media">,
+    Exclude<
+      LibraryTab,
+      "templates" | "uploads" | "text" | "research" | "media" | "projects"
+    >,
     { title: string; body: string }
   > = {
       themes: {
@@ -740,11 +931,7 @@ function PlaceholderTab({ tab }: { tab: LibraryTab }) {
       },
       tools: {
         title: "Tools",
-        body: "Export PPTX, PDF, or Decksmith JSON from the canvas toolbar. Universal import lives under Uploads.",
-      },
-      projects: {
-        title: "Projects",
-        body: "Recent templates appear under Templates → Recently used.",
+        body: "Export PPTX, PDF, or EchoFlow JSON from the canvas toolbar. Universal import lives under Uploads.",
       },
       apps: {
         title: "Apps",
@@ -755,7 +942,7 @@ function PlaceholderTab({ tab }: { tab: LibraryTab }) {
     copy[
       tab as Exclude<
         LibraryTab,
-        "templates" | "uploads" | "text" | "research" | "media"
+        "templates" | "uploads" | "text" | "research" | "media" | "projects"
       >
     ];
   return (

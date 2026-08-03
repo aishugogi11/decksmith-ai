@@ -2,6 +2,10 @@ import type { Slide, SlideLayout, ThemeId } from "@/lib/types";
 import { uid } from "@/lib/utils";
 import { emptyPatch } from "@/lib/ai/edit-engine/apply-patch";
 import type { EditCommandHandler, EditPatch } from "@/lib/ai/edit-engine/types";
+import {
+  isInstagramRedesignIntent,
+  redesignForInstagram,
+} from "@/lib/redesign/instagram";
 
 function minimizeSlide(slide: Slide, aggressive: boolean): Partial<Slide> {
   const bullets = slide.bullets
@@ -66,6 +70,27 @@ function patchSlide(id: string, patch: Partial<Slide>): EditPatch {
 
 /** Modular command registry — add new commands here without touching the runner. */
 export const EDIT_COMMANDS: EditCommandHandler[] = [
+  {
+    id: "redesign.instagram",
+    description: "Redesign deck as an Instagram carousel / post set",
+    match: (t) => (isInstagramRedesignIntent(t) ? 0.98 : 0),
+    apply: (_t, presentation, target) => {
+      const next = redesignForInstagram(presentation);
+      return {
+        patch: {
+          ...emptyPatch(),
+          themeId: next.themeId,
+          format: next.format,
+          title: next.title,
+          subtitle: next.subtitle,
+          slides: next.slides,
+        },
+        reply: `Redesigned as an Instagram carousel (${next.slides.length} square frames) — short captions, bold type.`,
+        referent: { kind: "theme", slideId: target.slideId },
+        themePersonality: "playful",
+      };
+    },
+  },
   {
     id: "theme.apple",
     description: "Apple-style / company minimal theme",

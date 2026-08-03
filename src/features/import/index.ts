@@ -4,7 +4,7 @@ export { useImportStore } from "@/features/import/store";
 export { IMPORT_PROVIDERS } from "@/features/import/providers/registry";
 export { importPresentationFile, detectImportFormat } from "@/features/import/services/import-service";
 export { analyzeImportedPresentation } from "@/features/import/analysis/analyze-import";
-export { presentationToDecksmithJson } from "@/features/import/parsers/decksmith/parse-json";
+export { presentationToEchoFlowJson } from "@/features/import/parsers/decksmith/parse-json";
 export type {
   ImportAnalysis,
   ImportFormat,

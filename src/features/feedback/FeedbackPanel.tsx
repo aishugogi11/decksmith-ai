@@ -4,6 +4,7 @@ import { Check, Loader2, MessageSquareWarning, Sparkles } from "lucide-react";
 import { ProBadge, ProGate } from "@/features/subscription";
 import { useFeedbackStore } from "@/features/feedback/store";
 import { usePresentationStore } from "@/store/presentation-store";
+import { redesignForInstagram } from "@/lib/redesign/instagram";
 import { cn } from "@/lib/utils";
 
 const SOURCE_OPTIONS = [
@@ -18,6 +19,11 @@ const SOURCE_OPTIONS = [
 ] as const;
 
 const WORKFLOW_EXAMPLES = [
+  {
+    label: "Instagram",
+    source: "instagram" as const,
+    text: "Redesign this deck to be suitable as an Instagram post carousel — square frames, short captions, bold titles, one idea per slide.",
+  },
   {
     label: "Student",
     source: "professor" as const,
@@ -54,6 +60,33 @@ export function FeedbackPanel() {
   const editorSelection = usePresentationStore((s) => s.editorSelection);
   const undo = usePresentationStore((s) => s.undo);
   const selectSlide = usePresentationStore((s) => s.selectSlide);
+
+  function applyInstagramSet() {
+    const next = redesignForInstagram(presentation);
+    usePresentationStore.setState((state) => ({
+      past: [
+        ...state.past,
+        {
+          presentation: structuredClone(state.presentation),
+          selectedSlideId: state.selectedSlideId,
+          editorSelection: structuredClone(state.editorSelection),
+        },
+      ].slice(-40),
+      future: [],
+      presentation: next,
+      selectedSlideId: next.slides[0]?.id ?? state.selectedSlideId,
+      personalityId: "playful",
+      messages: [
+        ...state.messages,
+        {
+          id: `msg_${Date.now()}`,
+          role: "assistant" as const,
+          content: `Redesigned as an Instagram carousel (${next.slides.length} square frames) — short captions, bold type.`,
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    }));
+  }
 
   function commitApply(actionIds?: string[]) {
     applyActions({
@@ -97,7 +130,7 @@ export function FeedbackPanel() {
         <div>
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold text-zinc-950">
-              AI Redesign
+              Redesign
             </p>
             <ProBadge />
           </div>
@@ -147,6 +180,12 @@ export function FeedbackPanel() {
                 key={ex.label}
                 type="button"
                 onClick={() => {
+                  if (ex.label === "Instagram") {
+                    setSourceKind("instagram");
+                    setInput(ex.text);
+                    applyInstagramSet();
+                    return;
+                  }
                   setSourceKind(ex.source);
                   setInput(ex.text);
                 }}
@@ -156,6 +195,14 @@ export function FeedbackPanel() {
               </button>
             ))}
           </div>
+
+          <button
+            type="button"
+            onClick={applyInstagramSet}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-900 transition hover:border-zinc-400 hover:bg-zinc-50"
+          >
+            Redesign as Instagram carousel
+          </button>
 
           <textarea
             value={input}

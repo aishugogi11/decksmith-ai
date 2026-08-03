@@ -20,7 +20,10 @@ function loadUsage(): UsageCounters {
     return { day: todayKey(), aiRequestsToday: 0, presentationCount: 0 };
   }
   try {
-    const raw = localStorage.getItem("decksmith-usage");
+    const raw =
+      localStorage.getItem("echoflow-usage") ??
+      localStorage.getItem("glide-usage") ??
+      localStorage.getItem("decksmith-usage");
     if (!raw) return { day: todayKey(), aiRequestsToday: 0, presentationCount: 0 };
     const parsed = JSON.parse(raw) as UsageCounters;
     if (parsed.day !== todayKey()) {
@@ -38,7 +41,7 @@ function loadUsage(): UsageCounters {
 
 function persistUsage(usage: UsageCounters) {
   try {
-    localStorage.setItem("decksmith-usage", JSON.stringify(usage));
+    localStorage.setItem("echoflow-usage", JSON.stringify(usage));
   } catch {
     /* ignore */
   }
@@ -47,7 +50,10 @@ function persistUsage(usage: UsageCounters) {
 function loadPlan(): PlanId {
   if (typeof window === "undefined") return "free";
   try {
-    const p = localStorage.getItem("decksmith-plan");
+    const p =
+      localStorage.getItem("echoflow-plan") ??
+      localStorage.getItem("glide-plan") ??
+      localStorage.getItem("decksmith-plan");
     return p === "pro" ? "pro" : "free";
   } catch {
     return "free";
@@ -84,7 +90,7 @@ export const useSubscriptionStore = create<SubStore>((set, get) => ({
     if (u.aiRequestsToday >= FREE_LIMITS.aiRequestsPerDay) {
       return {
         ok: false,
-        reason: `Free plan allows ${FREE_LIMITS.aiRequestsPerDay} AI requests/day. Upgrade to Pro for unlimited AI.`,
+        reason: `Free plan allows ${FREE_LIMITS.aiRequestsPerDay} edits/day. Upgrade to Pro for unlimited editing.`,
       };
     }
     return { ok: true };
@@ -131,7 +137,7 @@ export const useSubscriptionStore = create<SubStore>((set, get) => ({
 
   setPlan: (plan) => {
     try {
-      localStorage.setItem("decksmith-plan", plan);
+      localStorage.setItem("echoflow-plan", plan);
     } catch {
       /* ignore */
     }

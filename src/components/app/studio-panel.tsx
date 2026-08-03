@@ -36,6 +36,8 @@ import { cn } from "@/lib/utils";
 
 const DEFAULT_SUGGESTIONS = [
   "Make this look like an Apple Keynote.",
+  "Redesign this for Instagram.",
+  "Make the title bigger.",
   "Reduce this from 40 slides to 15.",
   "Make this more persuasive for investors.",
 ];
@@ -154,11 +156,11 @@ export function StudioPanel({ compact: _compact = false }: { compact?: boolean }
       return;
     }
     speech.start((transcript, { isFinal }) => {
-      setInput(transcript);
+      // Don't echo the transcript into the chat input — apply on final only.
       if (isFinal && transcript.trim()) {
         setInput("");
         setVoiceStatus("processing");
-        void sendMessage(transcript.trim());
+        void sendMessage(transcript.trim(), { silent: true });
       }
     });
   }
@@ -302,7 +304,7 @@ export function StudioPanel({ compact: _compact = false }: { compact?: boolean }
               </p>
               <p className="text-sm text-zinc-500">
                 Import a PPTX or PDF you already have — then redesign it from
-                feedback or strengthen it with Research. Decksmith is an AI
+                feedback or strengthen it with Research. EchoFlow is an
                 editor for work that already exists.
               </p>
               <Button
@@ -349,7 +351,7 @@ export function StudioPanel({ compact: _compact = false }: { compact?: boolean }
               </div>
               <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 rounded-2xl bg-zinc-100 px-4 py-3">
                 <span className="text-xs font-medium text-zinc-700">
-                  Auto-speak AI replies
+                  Auto-speak replies
                 </span>
                 <input
                   type="checkbox"
@@ -387,7 +389,7 @@ export function StudioPanel({ compact: _compact = false }: { compact?: boolean }
             )}
 
             <section>
-              <p className="text-sm font-semibold text-zinc-950">Ask Decksmith</p>
+              <p className="text-sm font-semibold text-zinc-950">Ask EchoFlow</p>
               <p className="mt-1 text-xs text-zinc-500">
                 {collaborator.active
                   ? "Collaborating — answer to shape the deck."

@@ -47,7 +47,7 @@ export async function exportPresentationToPdf(
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>${escapeHtml(presentation.title)} — Decksmith PDF</title>
+  <title>${escapeHtml(presentation.title)} — EchoFlow PDF</title>
   <style>
     @page { size: landscape; margin: 12mm; }
     * { box-sizing: border-box; }

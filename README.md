@@ -1,4 +1,4 @@
-# Decksmith AI
+# EchoFlow
 
 **Design presentations by talking.**
 
@@ -24,7 +24,8 @@ npm run dev
 
 ## Voice (ElevenLabs)
 
-Decksmith speaks slide content and AI replies through [ElevenLabs](https://elevenlabs.io) TTS.
+EchoFlow speaks slide content and AI replies through [ElevenLabs](https://elevenlabs.io) TTS.
+
 
 1. Create an API key at elevenlabs.io → Profile → API Key  
 2. Put it in `.env.local` as `ELEVENLABS_API_KEY=`  
@@ -69,7 +70,7 @@ src/
 **Providers** (`src/lib/template-engine/`):
 - `decksmith` — curated catalog
 - `open-pack` — MIT open skeletons for AI customization
-- `user` — imports (PPTX text extract or Decksmith JSON)
+- `user` — imports (PPTX text extract or EchoFlow JSON)
 
 **Creative collaborator:**
 1. Vague asks (“Make me a pitch deck”) → interview (audience, focus, dark mode, charts)

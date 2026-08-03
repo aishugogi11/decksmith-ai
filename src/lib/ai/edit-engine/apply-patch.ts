@@ -69,9 +69,15 @@ export function applyEditPatch(
     }
   }
 
+  if (patch.slides?.length) {
+    slides = patch.slides.map((s) => ({ ...s }));
+    slides.forEach((s) => changed.add(s.id));
+  }
+
   const nextPresentation: Presentation = {
     ...presentation,
     themeId: patch.themeId ?? presentation.themeId,
+    format: patch.format ?? presentation.format,
     title: patch.title ?? presentation.title,
     subtitle: patch.subtitle ?? presentation.subtitle,
     slides,
@@ -92,8 +98,10 @@ export function mergePatches(...patches: EditPatch[]): EditPatch {
 
   for (const p of patches) {
     if (p.themeId) out.themeId = p.themeId;
+    if (p.format) out.format = p.format;
     if (p.title) out.title = p.title;
     if (p.subtitle) out.subtitle = p.subtitle;
+    if (p.slides) out.slides = p.slides;
     if (p.reorder) out.reorder = p.reorder;
     if (p.removeSlideIds) {
       out.removeSlideIds = [...(out.removeSlideIds ?? []), ...p.removeSlideIds];

@@ -1,6 +1,7 @@
 import type { ThemeId } from "@/lib/types";
 import { uid } from "@/lib/utils";
 import { resolveImageSrcFromHint } from "@/features/visual-assistant/resolve-src";
+import { redesignForInstagram } from "@/lib/redesign/instagram";
 import {
   anchorToXY,
   clamp,
@@ -277,7 +278,7 @@ export function ensureEditorActionsRegistered(): void {
     examples: ["Move it to the top right.", "Move it left", "Move the chart to slide 3"],
     execute: (params, ctx) => {
       let presentation = clonePresentation(ctx.presentation);
-      let i = resolveSlideIndex(params, ctx);
+      const i = resolveSlideIndex(params, ctx);
       let slide = presentation.slides[i];
       let objectId = resolveObjectId(params, ctx, slide);
 
@@ -371,7 +372,7 @@ export function ensureEditorActionsRegistered(): void {
       presentation = updateSlide(presentation, i, (s) =>
         patchObject(s, objectId!, { x, y })
       );
-      const next = presentation.slides[i].objects?.find((o) => o.id === objectId)!;
+      const next = presentation.slides[i].objects?.find((o) => o.id === objectId) ?? null;
       return {
         presentation,
         selectedSlideId: slide.id,
@@ -405,8 +406,8 @@ export function ensureEditorActionsRegistered(): void {
         scale = 1.35;
       if (params.smaller === true || params.size === "smaller") scale = 0.75;
 
-      let w = typeof params.w === "number" ? params.w : clamp(obj.w * scale, 5, 100);
-      let h = typeof params.h === "number" ? params.h : clamp(obj.h * scale, 5, 100);
+      const w = typeof params.w === "number" ? params.w : clamp(obj.w * scale, 5, 100);
+      const h = typeof params.h === "number" ? params.h : clamp(obj.h * scale, 5, 100);
       let fontSize = obj.fontSize;
       if (obj.type === "textbox" && fontSize) {
         fontSize = Math.round(clamp(fontSize * scale, 10, 96));
@@ -415,7 +416,7 @@ export function ensureEditorActionsRegistered(): void {
       const presentation = updateSlide(clonePresentation(ctx.presentation), i, (s) =>
         patchObject(s, objectId, { w, h, fontSize })
       );
-      const next = presentation.slides[i].objects?.find((o) => o.id === objectId)!;
+      const next = presentation.slides[i].objects?.find((o) => o.id === objectId) ?? null;
       return {
         presentation,
         selectedSlideId: slide.id,
@@ -477,7 +478,7 @@ export function ensureEditorActionsRegistered(): void {
       const presentation = updateSlide(clonePresentation(ctx.presentation), i, (s) =>
         patchObject(s, objectId, { text })
       );
-      const next = presentation.slides[i].objects?.find((o) => o.id === objectId)!;
+      const next = presentation.slides[i].objects?.find((o) => o.id === objectId) ?? null;
       return {
         presentation,
         selectedSlideId: slide.id,
@@ -508,7 +509,7 @@ export function ensureEditorActionsRegistered(): void {
       const presentation = updateSlide(clonePresentation(ctx.presentation), i, (s) =>
         patchObject(s, objectId, { fontSize: clamp(fontSize, 10, 96) })
       );
-      const next = presentation.slides[i].objects?.find((o) => o.id === objectId)!;
+      const next = presentation.slides[i].objects?.find((o) => o.id === objectId) ?? null;
       return {
         presentation,
         selectedSlideId: slide.id,
@@ -626,7 +627,7 @@ export function ensureEditorActionsRegistered(): void {
       const presentation = updateSlide(clonePresentation(ctx.presentation), i, (s) =>
         patchObject(s, objectId, { w, h, fontSize })
       );
-      const next = presentation.slides[i].objects?.find((o) => o.id === objectId)!;
+      const next = presentation.slides[i].objects?.find((o) => o.id === objectId) ?? null;
       return {
         presentation,
         selectedSlideId: slide.id,
@@ -655,6 +656,7 @@ export function ensureEditorActionsRegistered(): void {
           "luxury",
           "dark",
           "gradient",
+          "instagram",
         ],
         description: "Theme id",
       },
@@ -665,6 +667,12 @@ export function ensureEditorActionsRegistered(): void {
       const presentation = {
         ...clonePresentation(ctx.presentation),
         themeId,
+        format:
+          themeId === "instagram"
+            ? ("instagram" as const)
+            : ctx.presentation.format === "instagram"
+              ? ("widescreen" as const)
+              : ctx.presentation.format,
         updatedAt: new Date().toISOString(),
       };
       const personality =
@@ -672,7 +680,7 @@ export function ensureEditorActionsRegistered(): void {
           ? "minimal"
           : themeId === "dark"
             ? "bold"
-            : themeId === "startup"
+            : themeId === "startup" || themeId === "instagram"
               ? "playful"
               : "professional";
       return {
@@ -703,7 +711,8 @@ export function ensureEditorActionsRegistered(): void {
       const slide = ctx.presentation.slides[i];
       const objectId = resolveObjectId(params, ctx, slide);
       if (!objectId) throw new Error("Nothing to select");
-      const obj = slide.objects?.find((o) => o.id === objectId)!;
+      const obj = slide.objects?.find((o) => o.id === objectId);
+      if (!obj) throw new Error("Object not found");
       return {
         presentation: ctx.presentation,
         selectedSlideId: slide.id,
@@ -924,13 +933,39 @@ export function ensureEditorActionsRegistered(): void {
   });
 
   registerEditorAction({
+    name: "redesign_for_instagram",
+    description:
+      "Restyle the open deck as an Instagram carousel — square frames, short captions, bold type.",
+    params: [],
+    examples: [
+      "Redesign this for Instagram",
+      "Make this suitable as an Instagram post",
+      "Turn this into an Instagram carousel",
+    ],
+    execute: (_params, ctx) => {
+      const presentation = redesignForInstagram(clonePresentation(ctx.presentation));
+      return {
+        presentation,
+        selectedSlideId: presentation.slides[0]?.id ?? ctx.selectedSlideId,
+        selection: {
+          ...ctx.selection,
+          objectId: null,
+          lastAction: "redesign_for_instagram",
+        },
+        detail: `Instagram carousel · ${presentation.slides.length} frames`,
+        themePersonality: "playful",
+      };
+    },
+  });
+
+  registerEditorAction({
     name: "improve_layout",
     description: "Apply a cleaner layout style (e.g. apple) and trim density.",
     params: [
       {
         name: "style",
         type: "enum",
-        enumValues: ["apple", "minimal", "corporate"],
+        enumValues: ["apple", "minimal", "corporate", "instagram"],
         description: "Layout style",
       },
       { name: "slide", type: "number", description: "Optional focus slide" },
@@ -938,6 +973,18 @@ export function ensureEditorActionsRegistered(): void {
     examples: ["Improve layout apple style"],
     execute: (params, ctx) => {
       const style = str(params.style, "apple");
+      if (style === "instagram") {
+        const presentation = redesignForInstagram(
+          clonePresentation(ctx.presentation)
+        );
+        return {
+          presentation,
+          selectedSlideId: presentation.slides[0]?.id ?? ctx.selectedSlideId,
+          selection: { ...ctx.selection, lastAction: "improve_layout" },
+          detail: `Improved layout → instagram`,
+          themePersonality: "playful",
+        };
+      }
       const themeId =
         style === "corporate"
           ? "corporate"

@@ -11,22 +11,10 @@ export function createImportedPitchDemo(): Presentation {
     {
       id: uid("slide"),
       layout: "hero" as const,
-      title: "NovaCare AI",
+      title: "NovaCare",
       subtitle: "Clinical documentation that writes itself",
-      body: "Series A pitch · Confidential",
+      body: "Series A pitch",
       notes: "Open with the problem — not the product.",
-      objects: [
-        {
-          id: uid("obj"),
-          type: "textbox" as const,
-          x: 8,
-          y: 62,
-          w: 70,
-          h: 12,
-          text: "Import → Redesign → Research → Coach",
-          fontSize: 18,
-        },
-      ],
     },
     {
       id: uid("slide"),
@@ -60,7 +48,7 @@ export function createImportedPitchDemo(): Presentation {
       id: uid("slide"),
       layout: "bullets" as const,
       title: "Our solution",
-      subtitle: "Ambient AI that drafts the note while you talk",
+      subtitle: "Ambient listening that drafts the note while you talk",
       bullets: [
         "Listens in the exam room (with consent)",
         "Drafts SOAP notes in under 60 seconds",
@@ -98,7 +86,7 @@ export function createImportedPitchDemo(): Presentation {
       subtitle: "Purpose-built for clinical workflows",
       comparison: [
         {
-          title: "Generic AI notes",
+          title: "Generic note tools",
           items: ["Hallucinate meds", "No EHR write-back", "One-size prompts"],
         },
         {
@@ -108,25 +96,6 @@ export function createImportedPitchDemo(): Presentation {
             "Signed write-back",
             "Audit trail + citations",
           ],
-        },
-      ],
-    },
-    {
-      id: uid("slide"),
-      layout: "process" as const,
-      title: "Go-to-market",
-      process: [
-        {
-          title: "Land",
-          description: "Pilot with 2 departments",
-        },
-        {
-          title: "Expand",
-          description: "System-wide rollout",
-        },
-        {
-          title: "Platform",
-          description: "Coding + quality add-ons",
         },
       ],
     },
@@ -142,14 +111,14 @@ export function createImportedPitchDemo(): Presentation {
       id: uid("slide"),
       layout: "thankyou" as const,
       title: "Let’s rewrite the note",
-      subtitle: "nova.care · investors@novacare.ai",
+      subtitle: "nova.care · investors@nova.care",
       body: "Questions welcome.",
     },
   ];
 
   return {
     id: uid("deck"),
-    title: "NovaCare AI — Series A",
+    title: "NovaCare — Series A",
     subtitle: "Demo: imported deck ready to transform",
     themeId: "startup",
     slides,
@@ -182,6 +151,7 @@ Improve visual hierarchy so titles dominate.`,
 
 export const DEMO_VOICE_EXAMPLES = [
   "Make this look like an Apple Keynote.",
+  "Redesign this for Instagram.",
   "Create a textbox that says Clinical proof",
   "Reduce the text on slide 2.",
 ];

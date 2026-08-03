@@ -2,7 +2,7 @@ import type { DeckTemplate, TemplateCategory } from "@/lib/templates";
 import type { Slide, SlideLayout, ThemeId } from "@/lib/types";
 
 /**
- * Open Decksmith template pack — original layouts under MIT (see LICENSE note).
+ * Open EchoFlow template pack — original layouts under MIT (see LICENSE note).
  * Not scraped from Canva/Beautiful.ai. Generated programmatically so we can
  * ship 100+ high-quality skeletons for AI customization.
  */
@@ -28,6 +28,7 @@ const PREVIEWS: Record<ThemeId, string> = {
   luxury: "linear-gradient(135deg,#0c0a09,#d6b25e)",
   dark: "linear-gradient(135deg,#09090b,#a3e635)",
   gradient: "linear-gradient(135deg,#020617,#22d3ee)",
+  instagram: "linear-gradient(135deg,#1a0a12,#c13584,#f77737)",
 };
 
 const RECIPES: Recipe[] = [
@@ -216,16 +217,41 @@ const RECIPES: Recipe[] = [
     name: "Creative Portfolio",
     category: "creative",
     description: "Case-study style portfolio for designers and studios.",
-    tags: ["portfolio", "creative", "case study", "open"],
+    tags: ["portfolio", "creative", "case study", "product design", "ux", "ui", "open"],
     layouts: ["hero", "image", "section", "process", "quote", "thankyou"],
     themes: ["minimal", "luxury", "apple", "dark"],
+  },
+  {
+    slug: "product-design-pitch",
+    name: "Product Design Pitch",
+    category: "pitch",
+    description: "Pitch a product design vision — problem, craft, system, impact.",
+    tags: [
+      "product design",
+      "ux",
+      "ui",
+      "design",
+      "pitch",
+      "portfolio",
+      "open",
+    ],
+    layouts: [
+      "hero",
+      "section",
+      "process",
+      "comparison",
+      "stats",
+      "image",
+      "thankyou",
+    ],
+    themes: ["apple", "minimal", "startup", "google"],
   },
   {
     slug: "agency-pitch",
     name: "Agency Pitch",
     category: "creative",
     description: "Capabilities and process for creative agencies.",
-    tags: ["agency", "creative", "pitch", "open"],
+    tags: ["agency", "creative", "pitch", "product design", "open"],
     layouts: ["hero", "section", "process", "stats", "image", "thankyou"],
     themes: ["gradient", "dark", "luxury"],
   },
@@ -276,9 +302,9 @@ const RECIPES: Recipe[] = [
   },
   {
     slug: "healthcare-pitch",
-    name: "Healthcare AI Pitch",
+    name: "Healthcare Pitch",
     category: "pitch",
-    description: "Regulated-industry startup pitch for health AI.",
+    description: "Regulated-industry startup pitch for health tech.",
     tags: ["healthcare", "ai", "pitch", "open"],
     layouts: ["hero", "section", "comparison", "stats", "process", "timeline", "thankyou"],
     themes: ["startup", "corporate", "minimal", "apple"],
@@ -360,7 +386,7 @@ const RECIPES: Recipe[] = [
     name: "Design Critique",
     category: "creative",
     description: "Structured critique for design reviews.",
-    tags: ["design", "critique", "review", "open"],
+    tags: ["design", "critique", "review", "product design", "ux", "open"],
     layouts: ["hero", "image", "bullets", "comparison", "section", "thankyou"],
     themes: ["minimal", "dark", "apple"],
   },
@@ -384,9 +410,9 @@ const RECIPES: Recipe[] = [
   },
   {
     slug: "ai-product",
-    name: "AI Product Story",
+    name: "Product Story",
     category: "product",
-    description: "Explain an AI product without the hype.",
+    description: "Explain a product without the hype.",
     tags: ["ai", "product", "llm", "open"],
     layouts: ["hero", "section", "comparison", "process", "chart", "quote", "thankyou"],
     themes: ["gradient", "startup", "minimal", "dark"],
@@ -405,7 +431,7 @@ function skeletonFor(
         layout,
         title: label,
         subtitle: recipe.description,
-        body: "Open template · customize with AI",
+        body: "Open template · customize from your brief",
         notes: "Introduce the narrative in one breath.",
       };
     case "section":
@@ -413,7 +439,7 @@ function skeletonFor(
         layout,
         title: index === 1 ? "The problem" : "The opportunity",
         subtitle: "Replace with your specifics",
-        body: "One clear paragraph. AI will rewrite this from your brief.",
+        body: "One clear paragraph. Customize will rewrite this from your brief.",
         callout: "Keep the audience’s pain visible.",
       };
     case "bullets":
@@ -480,7 +506,7 @@ function skeletonFor(
         layout,
         title: "Visual moment",
         subtitle: label,
-        body: "Describe the image you want — AI suggests a hint.",
+        body: "Describe the image you want — EchoFlow suggests a hint.",
         imageHint: `${recipe.category} · ${label} · editorial photo`,
       };
     case "chart":
@@ -512,7 +538,7 @@ export function buildOpenTemplatePack(): DeckTemplate[] {
         id: `open-${recipe.slug}-${themeId}`,
         name: `${recipe.name} · ${themeId}`,
         category: recipe.category,
-        description: `${recipe.description} (Open Decksmith pack · MIT)`,
+        description: `${recipe.description} (Open EchoFlow pack · MIT)`,
         themeId,
         tags: [...recipe.tags, themeId, "mit", "open-source"],
         preview: PREVIEWS[themeId],
@@ -529,7 +555,7 @@ export function buildOpenTemplatePack(): DeckTemplate[] {
 export const OPEN_TEMPLATE_PACK = buildOpenTemplatePack();
 
 export const OPEN_PACK_LICENSE = {
-  name: "Decksmith Open Template Pack",
+  name: "EchoFlow Open Template Pack",
   spdx: "MIT",
-  note: "Original programmatic layouts by Decksmith. Not derived from Canva or other proprietary template marketplaces.",
+  note: "Original programmatic layouts by EchoFlow. Not derived from Canva or other proprietary template marketplaces.",
 };

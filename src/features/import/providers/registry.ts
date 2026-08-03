@@ -8,7 +8,7 @@ const fileProviders: ImportProvider[] = [
     id: "pptx",
     label: "PowerPoint / Keynote / Canva (.pptx)",
     status: "ready",
-    description: "Native OOXML parse into editable Decksmith objects",
+    description: "Native OOXML parse into editable EchoFlow objects",
     accept: [".pptx"],
   },
   {
@@ -20,7 +20,7 @@ const fileProviders: ImportProvider[] = [
   },
   {
     id: "decksmith",
-    label: "Decksmith JSON",
+    label: "EchoFlow JSON",
     status: "ready",
     description: "Exact restore of objects, theme, notes, metadata",
     accept: [".json"],

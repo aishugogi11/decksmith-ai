@@ -57,15 +57,15 @@ export function LandingPage() {
             transition={{ duration: 0.55 }}
           >
             <h1 className="font-[family-name:var(--font-display)] text-5xl font-extrabold leading-[1.02] tracking-tight sm:text-7xl">
-              Decksmith
+              EchoFlow
             </h1>
             <p className="mt-5 text-xl font-semibold tracking-tight text-zinc-800 sm:text-2xl">
               Import a deck. Redesign from feedback. Research what&apos;s
               missing.
             </p>
             <p className="mt-4 max-w-lg text-base leading-relaxed text-zinc-600 sm:text-lg">
-              An AI editor for presentations you already have — not another
-              blank canvas that makes you start over.
+              An editor for presentations you already have — not another blank
+              canvas that makes you start over.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">
@@ -81,12 +81,17 @@ export function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, delay: 0.08 }}
-            className="rounded-[28px] bg-white p-4 shadow-[0_30px_90px_rgba(0,0,0,0.16)] sm:p-5"
+            className="mx-auto w-full max-w-lg rounded-[24px] bg-white p-3 shadow-[0_30px_90px_rgba(0,0,0,0.16)] sm:max-w-xl sm:p-4 lg:mx-0"
           >
             <SlideCanvas
-              slide={demo.slides[0]}
+              slide={{
+                ...demo.slides[0],
+                subtitle: "Bits to qubits — why the next decade looks different",
+                body: "Superposition, entanglement, and real-world impact.",
+              }}
               theme={theme}
-              className="rounded-2xl border-0 shadow-none"
+              compact
+              className="rounded-xl border-0 shadow-none"
             />
           </motion.div>
         </section>

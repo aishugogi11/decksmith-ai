@@ -12,10 +12,23 @@ import type {
 export function generateRedesignActions(
   presentation: Presentation,
   issues: FeedbackIssue[],
-  slideMap: SlideIssueMap[]
+  slideMap: SlideIssueMap[],
+  opts?: { sourceKind?: string; rawText?: string }
 ): RedesignAction[] {
   const actions: RedesignAction[] = [];
   const issueById = new Map(issues.map((i) => [i.id, i]));
+  const wantsIg =
+    opts?.sourceKind === "instagram" ||
+    /\binstagram\b|\big\b|\bcarousel\b|\bsquare\b/i.test(opts?.rawText ?? "");
+
+  if (wantsIg) {
+    actions.push(
+      make("instagram-set", "Redesign as Instagram carousel (square + short captions)", {
+        action: "redesign_for_instagram",
+        params: {},
+      })
+    );
+  }
 
   for (const row of slideMap) {
     for (const issueId of row.issueIds) {

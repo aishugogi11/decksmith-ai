@@ -3,7 +3,7 @@ import type { Slide, SlideLayout } from "@/lib/types";
 import { uid } from "@/lib/utils";
 
 /**
- * Lightweight PPTX → Decksmith template extract.
+ * Lightweight PPTX → EchoFlow template extract.
  * Reads slide XML text nodes (open OOXML). Best-effort — not a full layout clone.
  */
 export async function importPptxAsTemplate(
@@ -44,7 +44,7 @@ export async function importPptxAsTemplate(
     id,
     source: "user",
     name: baseName,
-    description: `Imported from ${fileName} · AI can redesign layouts & copy`,
+    description: `Imported from ${fileName} · ready to redesign layouts & copy`,
     presentationType: "business",
     industry: ["imported"],
     audience: ["general"],

@@ -48,6 +48,7 @@ export type ImportQuickActionId =
   | "reduce_text"
   | "modernize"
   | "style_apple"
+  | "style_instagram"
   | "style_startup"
   | "style_corporate"
   | "style_academic"

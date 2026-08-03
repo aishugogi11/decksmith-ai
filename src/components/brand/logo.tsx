@@ -17,10 +17,10 @@ export function Logo({
         className
       )}
     >
-      <span className="grid h-7 w-7 place-items-center rounded-lg bg-zinc-950 text-[10px] text-white">
-        DS
+      <span className="grid h-7 w-7 place-items-center rounded-lg bg-zinc-950 text-[9px] text-white">
+        EF
       </span>
-      Decksmith AI
+      EchoFlow
     </Link>
   );
 }

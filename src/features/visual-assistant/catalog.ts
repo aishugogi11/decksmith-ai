@@ -2,7 +2,7 @@ import type { VisualCandidate } from "./types";
 
 /**
  * Curated in-product visual library (Unsplash CDN).
- * Keeps users inside Decksmith without an external search UI.
+ * Keeps users inside EchoFlow without an external search UI.
  */
 type CatalogEntry = Omit<VisualCandidate, "query"> & {
   tags: string[];

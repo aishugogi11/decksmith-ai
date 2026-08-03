@@ -101,12 +101,17 @@ export function isVagueCreateRequest(text: string): boolean {
   ) {
     return false;
   }
+  // Enough topic signal → show template picker instead of interviewing
+  if (
+    /\b(for|about|on)\b\s+[\w][\w\s-]{1,40}/.test(t) ||
+    /\b(product design|investor|startup|healthcare|saas|ux|ui)\b/.test(t)
+  ) {
+    return false;
+  }
   const vague =
     /^(make|create|build|generate|i need|i want)\b/.test(t) &&
     /\b(pitch|deck|presentation|slides?)\b/.test(t);
-  const thinDetail =
-    !/\bfor\b.+\b(investor|student|yc|startup|ai|health)/i.test(t) ||
-    t.split(/\s+/).length < 10;
+  const thinDetail = t.split(/\s+/).length < 8;
   return vague && thinDetail;
 }
 

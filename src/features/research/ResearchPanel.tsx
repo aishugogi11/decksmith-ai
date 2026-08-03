@@ -75,7 +75,7 @@ export function ResearchPanel() {
 
       <ProGate
         feature="research_mode"
-        reason="Research Mode is available on Decksmith Pro."
+        reason="Research Mode is available on EchoFlow Pro."
       >
         <div className="space-y-4">
           <div className="flex gap-1.5 rounded-xl bg-zinc-100 p-1">
@@ -121,7 +121,7 @@ export function ResearchPanel() {
 
           <div className="flex flex-wrap gap-1.5">
             {[
-              "Recent AI productivity statistics for investors",
+              "Recent productivity statistics for investors",
               "Climate policy facts with citations for a class presentation",
               "B2B SaaS market size and growth for a sales deck",
             ].map((example) => (
@@ -143,7 +143,7 @@ export function ResearchPanel() {
               placeholder={
                 intent === "strengthen"
                   ? "Evidence to find for this deck…"
-                  : "Research topic — e.g. AI in clinical documentation"
+                  : "Research topic — e.g. clinical documentation trends"
               }
               className="min-w-0 flex-1 bg-transparent text-sm text-zinc-950 placeholder:text-zinc-400 focus:outline-none"
               onKeyDown={(e) => {

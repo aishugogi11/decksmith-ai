@@ -3,7 +3,7 @@ import { uid } from "@/lib/utils";
 
 /**
  * Template catalog inspired by popular Canva / Beautiful.ai / Gamma categories.
- * Original Decksmith layouts & copy — not copies of third-party designs.
+ * Original EchoFlow layouts & copy — not copies of third-party designs.
  */
 
 export type TemplateCategory =

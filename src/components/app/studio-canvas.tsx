@@ -10,6 +10,7 @@ import {
   MicOff,
   Plus,
   Redo2,
+  Save,
   Square,
   Trash2,
   Type,
@@ -52,11 +53,17 @@ export function StudioCanvas() {
   const selectEditorObject = usePresentationStore((s) => s.selectEditorObject);
   const addTextbox = usePresentationStore((s) => s.addTextbox);
   const deleteSelectedObject = usePresentationStore((s) => s.deleteSelectedObject);
+  const setDeckTitle = usePresentationStore((s) => s.setDeckTitle);
+  const saveCurrentProject = usePresentationStore((s) => s.saveCurrentProject);
+  const setLibraryTab = usePresentationStore((s) => s.setLibraryTab);
+  const setTemplatesOpen = usePresentationStore((s) => s.setTemplatesOpen);
 
   const [speaking, setSpeaking] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(presentation.title);
+  const [saveNote, setSaveNote] = useState<string | null>(null);
   const speech = useSpeechRecognition();
 
   const theme = THEMES[presentation.themeId];
@@ -74,6 +81,10 @@ export function StudioCanvas() {
     if (!el) return;
     el.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [activeId]);
+
+  useEffect(() => {
+    setTitleDraft(presentation.title);
+  }, [presentation.id, presentation.title]);
 
   const hasSelectedObject =
     Boolean(editorSelection.objectId) &&
@@ -145,7 +156,7 @@ export function StudioCanvas() {
     speech.start((transcript, { isFinal }) => {
       if (isFinal && transcript.trim()) {
         setVoiceStatus("processing");
-        void sendMessage(transcript.trim());
+        void sendMessage(transcript.trim(), { silent: true });
       }
     });
   }
@@ -158,31 +169,81 @@ export function StudioCanvas() {
       className="flex h-full min-h-0 w-full max-w-5xl flex-col"
     >
       <div className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-2 px-1">
-        <div>
-          <p className="text-xs font-medium text-zinc-700/80">
-            {presentation.title}
-            <span className="mx-2 text-zinc-400">·</span>
-            Slide {activeIndex + 1} of {presentation.slides.length}
-            {(voiceStatus === "listening" || voiceStatus === "processing") && (
-              <>
-                <span className="mx-2 text-zinc-400">·</span>
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1.5",
-                    voiceStatus === "listening" ? "text-red-600" : "text-amber-700"
-                  )}
-                >
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
-                  {voiceStatus === "listening" ? "Listening" : "Editing"}
-                </span>
-              </>
-            )}
-          </p>
-          {voiceError && (
-            <p className="mt-1 max-w-md text-[11px] text-red-600/90">{voiceError}</p>
-          )}
-          {speech.error && (
-            <p className="mt-1 max-w-md text-[11px] text-red-600/90">{speech.error}</p>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              value={titleDraft}
+              onChange={(e) => setTitleDraft(e.target.value)}
+              onBlur={() => {
+                const next = titleDraft.trim() || "Untitled project";
+                setTitleDraft(next);
+                if (next !== presentation.title) setDeckTitle(next);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.currentTarget.blur();
+                }
+              }}
+              aria-label="Project name"
+              placeholder="Project name"
+              className="min-w-[10rem] max-w-xs truncate rounded-lg border border-transparent bg-transparent px-1.5 py-0.5 text-xs font-semibold text-zinc-800 outline-none transition hover:border-zinc-200 focus:border-zinc-300 focus:bg-white"
+            />
+            <span className="text-zinc-400">·</span>
+            <p className="text-xs font-medium text-zinc-700/80">
+              Slide {activeIndex + 1} of {presentation.slides.length}
+              {(voiceStatus === "listening" || voiceStatus === "processing") && (
+                <>
+                  <span className="mx-2 text-zinc-400">·</span>
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1.5",
+                      voiceStatus === "listening"
+                        ? "text-red-600"
+                        : "text-amber-700"
+                    )}
+                  >
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+                    {voiceStatus === "listening" ? "Listening" : "Editing"}
+                  </span>
+                </>
+              )}
+            </p>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-7 gap-1.5 px-2.5 text-[11px]"
+              onClick={() => {
+                const next = titleDraft.trim() || "Untitled project";
+                setTitleDraft(next);
+                const result = saveCurrentProject(next);
+                setSaveNote(result.detail);
+                window.setTimeout(() => setSaveNote(null), 2200);
+              }}
+              title="Save project"
+            >
+              <Save className="h-3.5 w-3.5" />
+              Save
+            </Button>
+            <button
+              type="button"
+              className="text-[11px] font-medium text-zinc-500 underline-offset-2 hover:text-zinc-800 hover:underline"
+              onClick={() => {
+                setLibraryTab("projects");
+                setTemplatesOpen(true);
+              }}
+            >
+              Projects
+            </button>
+          </div>
+          {(saveNote || voiceError || speech.error) && (
+            <p
+              className={cn(
+                "mt-1 max-w-md text-[11px]",
+                saveNote ? "text-emerald-700" : "text-red-600/90"
+              )}
+            >
+              {saveNote || voiceError || speech.error}
+            </p>
           )}
         </div>
         <div className="flex items-center gap-1 rounded-2xl border border-white/70 bg-white/80 p-1 shadow-sm backdrop-blur">
@@ -283,7 +344,7 @@ export function StudioCanvas() {
                       run: () => exportPdf(),
                     },
                     {
-                      label: "Decksmith (.json)",
+                      label: "EchoFlow (.json)",
                       run: async () => {
                         exportJson();
                       },
@@ -380,18 +441,20 @@ export function StudioCanvas() {
                   <SlideCanvas
                     slide={slide}
                     theme={theme}
-                    editable={selected}
+                    editable
                     onChange={(patch) => updateSlide(slide.id, patch)}
                     className="rounded-2xl border-zinc-100 shadow-none"
                     isFirstSlide={index === 0}
+                    format={presentation.format}
                     selectedObjectId={
                       editorSelection.slideId === slide.id
                         ? editorSelection.objectId
                         : null
                     }
-                    onSelectObject={(objectId) =>
-                      selectEditorObject(slide.id, objectId)
-                    }
+                    onSelectObject={(objectId) => {
+                      selectSlide(slide.id);
+                      selectEditorObject(slide.id, objectId);
+                    }}
                     onDeleteObject={(objectId) => {
                       const slideNum = index + 1;
                       usePresentationStore.getState().runEditorCommands(

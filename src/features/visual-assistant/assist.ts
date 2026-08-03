@@ -25,7 +25,7 @@ function extractSubject(text: string): string | null {
     t.match(/(?:find|search|show|get|add|insert)\s+(?:me\s+)?(?:an?\s+)?(.+)/i) ||
     t.match(/^(.+)$/);
   if (!m?.[1]) return null;
-  let subject = m[1]
+  const subject = m[1]
     .replace(/\b(please|thanks|thank you)\b/gi, "")
     .replace(/\b(on (this|the) slide|here|now)\b/gi, "")
     .replace(/\b(image|photo|picture|visual)\b/gi, "")

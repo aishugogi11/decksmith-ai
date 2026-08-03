@@ -33,6 +33,14 @@ export function parseVoiceLocally(
 
   // Theme / brand / transform style
   if (
+    /\bas (an? )?instagram|for instagram|instagram(-| )?ready|instagram (post|carousel|story|reel)|redesign.*(instagram|ig|insta)|(instagram|ig|insta).*(redesign|post|carousel|suitable|format)/.test(
+      t
+    )
+  ) {
+    intent = "redesign_for_instagram";
+    confidence = 0.96;
+    commands.push({ action: "redesign_for_instagram", params: {} });
+  } else if (
     /apple(-| )?(keynote )?style|look like (an? )?apple|use apple|company colors|our (company )?brand|brand colors/.test(
       t
     )

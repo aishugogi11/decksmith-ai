@@ -8,7 +8,8 @@ export type ThemeId =
   | "education"
   | "luxury"
   | "dark"
-  | "gradient";
+  | "gradient"
+  | "instagram";
 
 export type SlideLayout =
   | "hero"
@@ -106,6 +107,13 @@ export interface Slide {
   chartHint?: string;
   callout?: string;
   notes?: string;
+  /**
+   * Absolute % positions for layout text fields after the user drags them.
+   * When unset, fields stay in the template flow layout.
+   */
+  textPositions?: Partial<
+    Record<"title" | "subtitle" | "body" | "callout", { x: number; y: number }>
+  >;
   /** Optional overlay objects manipulated by the voice command agent */
   objects?: EditorObject[];
 }
@@ -115,6 +123,8 @@ export interface Presentation {
   title: string;
   subtitle?: string;
   themeId: ThemeId;
+  /** widescreen = 16:9; instagram = 1:1 carousel frames */
+  format?: "widescreen" | "instagram";
   slides: Slide[];
   updatedAt: string;
   createdAt: string;

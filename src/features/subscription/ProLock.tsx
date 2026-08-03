@@ -48,7 +48,7 @@ export function ProGate({
         type="button"
         onClick={() =>
           openUpgrade(
-            reason ?? "This feature is available on Decksmith Pro."
+            reason ?? "This feature is available on EchoFlow Pro."
           )
         }
         className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/50"

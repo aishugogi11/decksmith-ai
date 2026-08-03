@@ -111,7 +111,7 @@ function enrichSlide(
   index: number,
   research: ResearchBundle
 ): Slide {
-  let next = { ...slide };
+  const next = { ...slide };
 
   if (slide.layout === "stats" && research.stats.length) {
     next.stats = research.stats.slice(0, 3).map((s) => ({

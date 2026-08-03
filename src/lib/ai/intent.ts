@@ -26,15 +26,15 @@ const TYPE_RULES: { type: PresentationType; patterns: RegExp[] }[] = [
   { type: "biography", patterns: [/biograph/, /\bbio\b/, /life\s*story/, /steve\s*jobs/] },
   { type: "education", patterns: [/lesson/, /classroom/, /students?/, /teach/, /course/, /quantum/] },
   { type: "marketing", patterns: [/marketing/, /campaign/, /brand/, /go-?to-?market/] },
-  { type: "product", patterns: [/product\s*launch/, /roadmap/, /feature/, /saas/] },
+  { type: "product", patterns: [/product\s*launch/, /product\s*design/, /roadmap/, /feature/, /saas/, /\bux\b/, /\bui\b/] },
   { type: "sales", patterns: [/sales/, /pipeline/, /quota/, /prospect/] },
-  { type: "portfolio", patterns: [/portfolio/, /case\s*stud/] },
+  { type: "portfolio", patterns: [/portfolio/, /case\s*stud/, /design\s*portfolio/] },
   { type: "nonprofit", patterns: [/nonprofit/, /charity/, /donor/, /mission\s*impact/] },
   { type: "reports", patterns: [/okr/, /qbr/, /quarterly/, /board\s*update/, /report/] },
   { type: "events", patterns: [/webinar/, /conference/, /keynote/, /event/] },
   { type: "personal", patterns: [/personal\s*brand/, /interview/, /about\s*me/] },
   { type: "business", patterns: [/business/, /strategy/, /executive/, /corporate/] },
-  { type: "creative", patterns: [/creative/, /agency/, /design\s*review/] },
+  { type: "creative", patterns: [/creative/, /agency/, /design\s*review/, /product\s*design/, /design\s*system/] },
 ];
 
 const INDUSTRY_RULES: { industry: string; patterns: RegExp[] }[] = [
@@ -44,6 +44,7 @@ const INDUSTRY_RULES: { industry: string; patterns: RegExp[] }[] = [
   { industry: "education", patterns: [/education/, /edtech/, /school/] },
   { industry: "climate", patterns: [/climate/, /sustainab/, /green\s*tech/] },
   { industry: "software", patterns: [/software/, /saas/, /platform/, /app\b/] },
+  { industry: "design", patterns: [/product\s*design/, /\bux\b/, /\bui\b/, /design\s*system/, /figma/] },
 ];
 
 const STYLE_RULES: { style: VisualStyle; patterns: RegExp[] }[] = [

@@ -36,7 +36,7 @@ export type Tone =
 
 /**
  * Provider-agnostic template record.
- * Decksmith’s catalog, licensed packs, or future APIs all map into this shape.
+ * EchoFlow’s catalog, licensed packs, or future APIs all map into this shape.
  */
 export interface TemplateRecord {
   id: string;

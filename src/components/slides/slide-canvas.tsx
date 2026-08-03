@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ThemeTokens } from "@/lib/themes";
-import type { EditorObject, Slide } from "@/lib/types";
-import { useEditorFocusStore } from "@/lib/editor/focus";
+import type { Slide } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { EditorObjectLayer } from "@/components/slides/EditorObjectLayer";
 import {
   BarChart3,
   GripVertical,
@@ -12,7 +12,6 @@ import {
   Quote,
   Sparkles,
   Square,
-  Trash2,
 } from "lucide-react";
 
 function Editable({
@@ -45,10 +44,220 @@ function Editable({
       onBlur={(e) => onChange?.(e.currentTarget.innerText)}
       className={cn(
         onChange &&
-          "rounded-lg outline-none focus:ring-2 focus:ring-zinc-950/20 focus:ring-offset-2 focus:ring-offset-transparent",
+          "pointer-events-auto rounded-lg outline-none focus:ring-2 focus:ring-zinc-950/20 focus:ring-offset-2 focus:ring-offset-transparent",
         className
       )}
     />
+  );
+}
+
+
+function clampPct(n: number, max: number) {
+  return Math.max(0, Math.min(max, n));
+}
+
+type LayoutTextField = "title" | "subtitle" | "body" | "callout";
+
+/** Layout title/subtitle/body — click to type, drag (or grip) to move. */
+function DraggableLayoutText({
+  field,
+  value,
+  onChange,
+  position,
+  onMove,
+  editable,
+  className,
+  style,
+  as,
+}: {
+  field: LayoutTextField;
+  value: string;
+  onChange?: (v: string) => void;
+  position?: { x: number; y: number };
+  onMove?: (x: number, y: number) => void;
+  editable?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+  as?: "div" | "h1" | "h2" | "h3" | "p" | "span";
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState(position ?? null);
+  const [dragging, setDragging] = useState(false);
+  const posRef = useRef(pos);
+  const dragActiveRef = useRef(false);
+  const onMoveRef = useRef(onMove);
+
+  useEffect(() => {
+    onMoveRef.current = onMove;
+  }, [onMove]);
+
+  useEffect(() => {
+    if (dragActiveRef.current) return;
+    setPos(position ?? null);
+    posRef.current = position ?? null;
+  }, [position?.x, position?.y]);
+
+  function beginPointer(e: React.PointerEvent, forceDrag = false) {
+    if (!editable || !onMoveRef.current) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+
+    // While already editing this field, only the grip starts a drag
+    const target = e.target as HTMLElement;
+    if (
+      !forceDrag &&
+      target.isContentEditable &&
+      document.activeElement === target
+    ) {
+      return;
+    }
+
+    const slideEl = wrapRef.current?.closest("article");
+    if (!slideEl) return;
+
+    e.stopPropagation();
+    if (forceDrag) e.preventDefault();
+
+    const slideRect = slideEl.getBoundingClientRect();
+    let origin = posRef.current;
+    if (!origin && forceDrag) {
+      const box = wrapRef.current!.getBoundingClientRect();
+      origin = {
+        x: ((box.left - slideRect.left) / Math.max(slideRect.width, 1)) * 100,
+        y: ((box.top - slideRect.top) / Math.max(slideRect.height, 1)) * 100,
+      };
+      posRef.current = origin;
+      setPos(origin);
+    }
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const pointerId = e.pointerId;
+    const thresholdPx = 6;
+    let moved = forceDrag;
+    let dragStarted = forceDrag;
+
+    if (forceDrag) {
+      dragActiveRef.current = true;
+      setDragging(true);
+      (document.activeElement as HTMLElement | null)?.blur?.();
+    }
+
+    const ensureOrigin = () => {
+      if (origin) return origin;
+      const box = wrapRef.current!.getBoundingClientRect();
+      origin = {
+        x: ((box.left - slideRect.left) / Math.max(slideRect.width, 1)) * 100,
+        y: ((box.top - slideRect.top) / Math.max(slideRect.height, 1)) * 100,
+      };
+      posRef.current = origin;
+      setPos(origin);
+      return origin;
+    };
+
+    const onPointerMove = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      const dist = Math.hypot(ev.clientX - startX, ev.clientY - startY);
+      if (!dragStarted) {
+        if (dist < thresholdPx) return;
+        dragStarted = true;
+        moved = true;
+        dragActiveRef.current = true;
+        setDragging(true);
+        (document.activeElement as HTMLElement | null)?.blur?.();
+        ev.preventDefault();
+      }
+      const o = ensureOrigin();
+      const dx = ((ev.clientX - startX) / Math.max(slideRect.width, 1)) * 100;
+      const dy = ((ev.clientY - startY) / Math.max(slideRect.height, 1)) * 100;
+      const next = {
+        x: clampPct(o.x + dx, 92),
+        y: clampPct(o.y + dy, 92),
+      };
+      posRef.current = next;
+      setPos(next);
+    };
+
+    const onPointerUp = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+
+      if (dragStarted && moved && posRef.current) {
+        onMoveRef.current?.(posRef.current.x, posRef.current.y);
+      }
+      dragActiveRef.current = false;
+      setDragging(false);
+
+      // Click without drag → focus the editable text so the user can type
+      if (!dragStarted && !forceDrag) {
+        const editableEl = wrapRef.current?.querySelector(
+          "[contenteditable=true]"
+        ) as HTMLElement | null;
+        editableEl?.focus();
+      }
+    };
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerUp);
+  }
+
+  const abs = Boolean(pos);
+  return (
+    <div
+      ref={wrapRef}
+      data-layout-field={field}
+      className={cn(
+        "pointer-events-auto group/field max-w-full",
+        abs && "absolute z-20",
+        editable && onMove && !dragging && "cursor-text",
+        dragging && "z-40 cursor-grabbing"
+      )}
+      style={
+        abs && pos
+          ? {
+              left: `${pos.x}%`,
+              top: `${pos.y}%`,
+              width: "max-content",
+              maxWidth: "90%",
+              touchAction: "none",
+            }
+          : { touchAction: editable ? "none" : undefined }
+      }
+      onPointerDown={(e) => {
+        if ((e.target as HTMLElement).closest('button[aria-label="Drag to move"]')) {
+          return;
+        }
+        beginPointer(e, false);
+      }}
+    >
+      {editable && onMove && (
+        <button
+          type="button"
+          aria-label="Drag to move"
+          title="Drag to move"
+          className={cn(
+            "absolute -left-1 top-1/2 z-30 flex h-8 w-6 -translate-y-1/2 items-center justify-center rounded-md bg-zinc-950 text-white shadow-md opacity-0 transition-opacity group-hover/field:opacity-100",
+            dragging ? "cursor-grabbing opacity-100" : "cursor-grab"
+          )}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            beginPointer(e, true);
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GripVertical className="h-3.5 w-3.5" />
+        </button>
+      )}
+      <Editable
+        value={value}
+        onChange={onChange}
+        className={className}
+        style={style}
+        as={as}
+      />
+    </div>
   );
 }
 
@@ -62,6 +271,8 @@ export function SlideCanvas({
   selectedObjectId,
   onSelectObject,
   onDeleteObject,
+  compact = false,
+  format = "widescreen",
 }: {
   slide: Slide;
   theme: ThemeTokens;
@@ -72,14 +283,31 @@ export function SlideCanvas({
   selectedObjectId?: string | null;
   onSelectObject?: (objectId: string | null) => void;
   onDeleteObject?: (objectId: string) => void;
+  /** Tighter type/padding for landing previews */
+  compact?: boolean;
+  /** widescreen 16:9 (default) or instagram 1:1 */
+  format?: "widescreen" | "instagram";
 }) {
   const edit = editable ? onChange : undefined;
+  const square = format === "instagram";
+  const moveField =
+    edit &&
+    ((field: "title" | "subtitle" | "body" | "callout", x: number, y: number) => {
+      edit({
+        textPositions: {
+          ...(slide.textPositions ?? {}),
+          [field]: { x, y },
+        },
+      });
+    });
+
 
   return (
     <article
       data-first-slide={isFirstSlide ? "true" : undefined}
       className={cn(
-        "relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-zinc-100 shadow-[0_18px_40px_rgba(0,0,0,0.08)]",
+        "relative w-full overflow-hidden rounded-2xl border border-zinc-100 shadow-[0_18px_40px_rgba(0,0,0,0.08)]",
+        square ? "aspect-square" : "aspect-[16/9]",
         className
       )}
       style={{
@@ -105,41 +333,82 @@ export function SlideCanvas({
       <div
         className={cn(
           "relative flex h-full flex-col",
-          slide.layout === "blank" ? "p-0" : "p-8 sm:p-10"
+          editable ? "pointer-events-none" : undefined,
+          slide.layout === "blank"
+            ? "p-0"
+            : compact
+              ? "p-4 sm:p-5"
+              : "p-8 sm:p-10"
         )}
       >
         {slide.layout === "blank" && <div className="h-full w-full" aria-hidden />}
 
         {slide.layout === "hero" && (
-          <div className="flex h-full flex-col justify-end gap-4">
-            <div
-              className="inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
-              style={{ background: theme.accentSoft, color: theme.accent }}
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              Decksmith
-            </div>
-            <Editable
+          <div
+            className={cn(
+              "flex h-full min-h-0 flex-col",
+              compact
+                ? "justify-center gap-1.5"
+                : "justify-end gap-4"
+            )}
+          >
+            {!compact && (
+              <div
+                className="inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
+                style={{ background: theme.accentSoft, color: theme.accent }}
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                EchoFlow
+              </div>
+            )}
+            <DraggableLayoutText
+              field="title"
               as="h1"
               value={slide.title}
               onChange={edit && ((v) => edit({ title: v }))}
-              className="max-w-4xl font-[family-name:var(--font-display)] text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl"
+              editable={Boolean(edit)}
+              position={slide.textPositions?.title}
+              onMove={
+                moveField ? (x, y) => moveField("title", x, y) : undefined
+              }              className={cn(
+                "max-w-4xl font-[family-name:var(--font-display)] font-semibold tracking-tight",
+                compact
+                  ? "text-xl leading-tight sm:text-2xl"
+                  : "text-4xl leading-[1.05] sm:text-5xl"
+              )}
             />
             {slide.subtitle && (
-              <Editable
+              <DraggableLayoutText
+                field="subtitle"
                 as="p"
                 value={slide.subtitle}
                 onChange={edit && ((v) => edit({ subtitle: v }))}
-                className="max-w-2xl text-lg"
-                // muted via style
+                editable={Boolean(edit)}
+                position={slide.textPositions?.subtitle}
+                onMove={
+                  moveField ? (x, y) => moveField("subtitle", x, y) : undefined
+                }                className={cn(
+                  "max-w-2xl leading-snug",
+                  compact ? "text-xs sm:text-sm" : "text-lg"
+                )}
               />
             )}
             {slide.body && (
-              <Editable
+              <DraggableLayoutText
+                field="body"
                 as="p"
                 value={slide.body}
                 onChange={edit && ((v) => edit({ body: v }))}
-                className="max-w-xl text-base opacity-80"
+                editable={Boolean(edit)}
+                position={slide.textPositions?.body}
+                onMove={
+                  moveField ? (x, y) => moveField("body", x, y) : undefined
+                }                className={cn(
+                  "max-w-xl leading-snug opacity-80",
+                  compact
+                    ? "line-clamp-2 text-[11px] sm:text-xs"
+                    : "text-base"
+                )}
               />
             )}
           </div>
@@ -147,26 +416,41 @@ export function SlideCanvas({
 
         {slide.layout === "section" && (
           <div className="flex h-full flex-col justify-center gap-5">
-            <Editable
+            <DraggableLayoutText
+              field="title"
               as="h2"
               value={slide.title}
               onChange={edit && ((v) => edit({ title: v }))}
-              className="font-[family-name:var(--font-display)] text-4xl font-semibold tracking-tight"
+              editable={Boolean(edit)}
+              position={slide.textPositions?.title}
+              onMove={
+                moveField ? (x, y) => moveField("title", x, y) : undefined
+              }              className="font-[family-name:var(--font-display)] text-4xl font-semibold tracking-tight"
             />
             {slide.subtitle && (
-              <Editable
+              <DraggableLayoutText
+                field="subtitle"
                 as="p"
                 value={slide.subtitle}
                 onChange={edit && ((v) => edit({ subtitle: v }))}
-                className="text-xl opacity-70"
+                editable={Boolean(edit)}
+                position={slide.textPositions?.subtitle}
+                onMove={
+                  moveField ? (x, y) => moveField("subtitle", x, y) : undefined
+                }                className="text-xl opacity-70"
               />
             )}
             {slide.body && (
-              <Editable
+              <DraggableLayoutText
+                field="body"
                 as="p"
                 value={slide.body}
                 onChange={edit && ((v) => edit({ body: v }))}
-                className="max-w-3xl text-lg leading-relaxed opacity-85"
+                editable={Boolean(edit)}
+                position={slide.textPositions?.body}
+                onMove={
+                  moveField ? (x, y) => moveField("body", x, y) : undefined
+                }                className="max-w-3xl text-lg leading-relaxed opacity-85"
               />
             )}
             {slide.callout && (
@@ -174,10 +458,15 @@ export function SlideCanvas({
                 className="mt-2 max-w-2xl rounded-2xl border p-4 text-sm leading-relaxed"
                 style={{ background: theme.card, borderColor: theme.border }}
               >
-                <Editable
+                <DraggableLayoutText
+                  field="callout"
                   value={slide.callout}
                   onChange={edit && ((v) => edit({ callout: v }))}
-                />
+                  editable={Boolean(edit)}
+                  position={slide.textPositions?.callout}
+                  onMove={
+                    moveField ? (x, y) => moveField("callout", x, y) : undefined
+                  }                />
               </div>
             )}
           </div>
@@ -185,11 +474,16 @@ export function SlideCanvas({
 
         {slide.layout === "bullets" && (
           <div className="flex h-full flex-col gap-6">
-            <Editable
+            <DraggableLayoutText
+              field="title"
               as="h2"
               value={slide.title}
               onChange={edit && ((v) => edit({ title: v }))}
-              className="font-[family-name:var(--font-display)] text-3xl font-semibold"
+              editable={Boolean(edit)}
+              position={slide.textPositions?.title}
+              onMove={
+                moveField ? (x, y) => moveField("title", x, y) : undefined
+              }              className="font-[family-name:var(--font-display)] text-3xl font-semibold"
             />
             <ul className="grid gap-3">
               {(slide.bullets ?? []).map((b, i) => (
@@ -223,18 +517,28 @@ export function SlideCanvas({
         {slide.layout === "stats" && (
           <div className="flex h-full flex-col gap-8">
             <div>
-              <Editable
+              <DraggableLayoutText
+                field="title"
                 as="h2"
                 value={slide.title}
                 onChange={edit && ((v) => edit({ title: v }))}
-                className="font-[family-name:var(--font-display)] text-3xl font-semibold"
+                editable={Boolean(edit)}
+                position={slide.textPositions?.title}
+                onMove={
+                  moveField ? (x, y) => moveField("title", x, y) : undefined
+                }                className="font-[family-name:var(--font-display)] text-3xl font-semibold"
               />
               {slide.subtitle && (
-                <Editable
+                <DraggableLayoutText
+                  field="subtitle"
                   as="p"
                   value={slide.subtitle}
                   onChange={edit && ((v) => edit({ subtitle: v }))}
-                  className="mt-2 opacity-70"
+                  editable={Boolean(edit)}
+                  position={slide.textPositions?.subtitle}
+                  onMove={
+                    moveField ? (x, y) => moveField("subtitle", x, y) : undefined
+                  }                  className="mt-2 opacity-70"
                 />
               )}
             </div>
@@ -298,11 +602,16 @@ export function SlideCanvas({
 
         {slide.layout === "timeline" && (
           <div className="flex h-full flex-col gap-6">
-            <Editable
+            <DraggableLayoutText
+              field="title"
               as="h2"
               value={slide.title}
               onChange={edit && ((v) => edit({ title: v }))}
-              className="font-[family-name:var(--font-display)] text-3xl font-semibold"
+              editable={Boolean(edit)}
+              position={slide.textPositions?.title}
+              onMove={
+                moveField ? (x, y) => moveField("title", x, y) : undefined
+              }              className="font-[family-name:var(--font-display)] text-3xl font-semibold"
             />
             <div className="grid flex-1 grid-cols-4 gap-3">
               {(slide.timeline ?? []).map((t, i) => (
@@ -345,18 +654,28 @@ export function SlideCanvas({
         {slide.layout === "comparison" && (
           <div className="flex h-full flex-col gap-6">
             <div>
-              <Editable
+              <DraggableLayoutText
+                field="title"
                 as="h2"
                 value={slide.title}
                 onChange={edit && ((v) => edit({ title: v }))}
-                className="font-[family-name:var(--font-display)] text-3xl font-semibold"
+                editable={Boolean(edit)}
+                position={slide.textPositions?.title}
+                onMove={
+                  moveField ? (x, y) => moveField("title", x, y) : undefined
+                }                className="font-[family-name:var(--font-display)] text-3xl font-semibold"
               />
               {slide.subtitle && (
-                <Editable
+                <DraggableLayoutText
+                  field="subtitle"
                   as="p"
                   value={slide.subtitle}
                   onChange={edit && ((v) => edit({ subtitle: v }))}
-                  className="mt-2 opacity-70"
+                  editable={Boolean(edit)}
+                  position={slide.textPositions?.subtitle}
+                  onMove={
+                    moveField ? (x, y) => moveField("subtitle", x, y) : undefined
+                  }                  className="mt-2 opacity-70"
                 />
               )}
             </div>
@@ -395,11 +714,16 @@ export function SlideCanvas({
 
         {slide.layout === "process" && (
           <div className="flex h-full flex-col gap-6">
-            <Editable
+            <DraggableLayoutText
+              field="title"
               as="h2"
               value={slide.title}
               onChange={edit && ((v) => edit({ title: v }))}
-              className="font-[family-name:var(--font-display)] text-3xl font-semibold"
+              editable={Boolean(edit)}
+              position={slide.textPositions?.title}
+              onMove={
+                moveField ? (x, y) => moveField("title", x, y) : undefined
+              }              className="font-[family-name:var(--font-display)] text-3xl font-semibold"
             />
             <div className="grid flex-1 grid-cols-3 gap-4">
               {(slide.process ?? []).map((step, i) => (
@@ -447,26 +771,41 @@ export function SlideCanvas({
         {slide.layout === "image" && (
           <div className="grid h-full grid-cols-2 gap-6">
             <div className="flex flex-col justify-center gap-4">
-              <Editable
+              <DraggableLayoutText
+                field="title"
                 as="h2"
                 value={slide.title}
                 onChange={edit && ((v) => edit({ title: v }))}
-                className="font-[family-name:var(--font-display)] text-3xl font-semibold"
+                editable={Boolean(edit)}
+                position={slide.textPositions?.title}
+                onMove={
+                  moveField ? (x, y) => moveField("title", x, y) : undefined
+                }                className="font-[family-name:var(--font-display)] text-3xl font-semibold"
               />
               {slide.subtitle && (
-                <Editable
+                <DraggableLayoutText
+                  field="subtitle"
                   as="p"
                   value={slide.subtitle}
                   onChange={edit && ((v) => edit({ subtitle: v }))}
-                  className="opacity-70"
+                  editable={Boolean(edit)}
+                  position={slide.textPositions?.subtitle}
+                  onMove={
+                    moveField ? (x, y) => moveField("subtitle", x, y) : undefined
+                  }                  className="opacity-70"
                 />
               )}
               {slide.body && (
-                <Editable
+                <DraggableLayoutText
+                  field="body"
                   as="p"
                   value={slide.body}
                   onChange={edit && ((v) => edit({ body: v }))}
-                  className="text-base leading-relaxed opacity-85"
+                  editable={Boolean(edit)}
+                  position={slide.textPositions?.body}
+                  onMove={
+                    moveField ? (x, y) => moveField("body", x, y) : undefined
+                  }                  className="text-base leading-relaxed opacity-85"
                 />
               )}
             </div>
@@ -485,18 +824,28 @@ export function SlideCanvas({
         {slide.layout === "chart" && (
           <div className="flex h-full flex-col gap-6">
             <div>
-              <Editable
+              <DraggableLayoutText
+                field="title"
                 as="h2"
                 value={slide.title}
                 onChange={edit && ((v) => edit({ title: v }))}
-                className="font-[family-name:var(--font-display)] text-3xl font-semibold"
+                editable={Boolean(edit)}
+                position={slide.textPositions?.title}
+                onMove={
+                  moveField ? (x, y) => moveField("title", x, y) : undefined
+                }                className="font-[family-name:var(--font-display)] text-3xl font-semibold"
               />
               {slide.subtitle && (
-                <Editable
+                <DraggableLayoutText
+                  field="subtitle"
                   as="p"
                   value={slide.subtitle}
                   onChange={edit && ((v) => edit({ subtitle: v }))}
-                  className="mt-2 opacity-70"
+                  editable={Boolean(edit)}
+                  position={slide.textPositions?.subtitle}
+                  onMove={
+                    moveField ? (x, y) => moveField("subtitle", x, y) : undefined
+                  }                  className="mt-2 opacity-70"
                 />
               )}
             </div>
@@ -540,26 +889,41 @@ export function SlideCanvas({
 
         {slide.layout === "thankyou" && (
           <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-            <Editable
+            <DraggableLayoutText
+              field="title"
               as="h1"
               value={slide.title}
               onChange={edit && ((v) => edit({ title: v }))}
-              className="font-[family-name:var(--font-display)] text-5xl font-semibold tracking-tight"
+              editable={Boolean(edit)}
+              position={slide.textPositions?.title}
+              onMove={
+                moveField ? (x, y) => moveField("title", x, y) : undefined
+              }              className="font-[family-name:var(--font-display)] text-5xl font-semibold tracking-tight"
             />
             {slide.subtitle && (
-              <Editable
+              <DraggableLayoutText
+                field="subtitle"
                 as="p"
                 value={slide.subtitle}
                 onChange={edit && ((v) => edit({ subtitle: v }))}
-                className="max-w-xl text-lg opacity-75"
+                editable={Boolean(edit)}
+                position={slide.textPositions?.subtitle}
+                onMove={
+                  moveField ? (x, y) => moveField("subtitle", x, y) : undefined
+                }                className="max-w-xl text-lg opacity-75"
               />
             )}
             {slide.body && (
-              <Editable
+              <DraggableLayoutText
+                field="body"
                 as="p"
                 value={slide.body}
                 onChange={edit && ((v) => edit({ body: v }))}
-                className="max-w-lg text-sm opacity-65"
+                editable={Boolean(edit)}
+                position={slide.textPositions?.body}
+                onMove={
+                  moveField ? (x, y) => moveField("body", x, y) : undefined
+                }                className="max-w-lg text-sm opacity-65"
               />
             )}
           </div>
@@ -607,323 +971,5 @@ export function SlideCanvas({
         />
       ))}
     </article>
-  );
-}
-
-function clampPct(n: number, max: number) {
-  return Math.max(0, Math.min(max, n));
-}
-
-function EditorObjectLayer({
-  obj,
-  theme,
-  selected,
-  editable,
-  onSelect,
-  onDelete,
-  onMove,
-  onTextChange,
-  importPageMode,
-}: {
-  obj: EditorObject;
-  theme: ThemeTokens;
-  selected?: boolean;
-  editable?: boolean;
-  onSelect?: () => void;
-  onDelete?: () => void;
-  onMove?: (x: number, y: number) => void;
-  onTextChange?: (text: string) => void;
-  /** PDF import: page bitmap is the visual; textboxes stay invisible until selected */
-  importPageMode?: boolean;
-}) {
-  const nodeRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ x: obj.x, y: obj.y });
-  const [dragging, setDragging] = useState(false);
-  const posRef = useRef(pos);
-  const onMoveRef = useRef(onMove);
-  const onSelectRef = useRef(onSelect);
-  const focusObjectId = useEditorFocusStore((s) => s.objectId);
-  const focusNonce = useEditorFocusStore((s) => s.nonce);
-  const clearFocus = useEditorFocusStore((s) => s.clear);
-
-  useEffect(() => {
-    onMoveRef.current = onMove;
-    onSelectRef.current = onSelect;
-  }, [onMove, onSelect]);
-
-  useEffect(() => {
-    if (!dragging) {
-      setPos({ x: obj.x, y: obj.y });
-      posRef.current = { x: obj.x, y: obj.y };
-    }
-  }, [obj.x, obj.y, dragging]);
-
-  // Keep contentEditable in sync when not focused (avoids React children fighting caret)
-  useEffect(() => {
-    const el = textRef.current;
-    if (!el || obj.type !== "textbox") return;
-    if (document.activeElement === el) return;
-    const next = obj.text || "";
-    if (el.innerText !== next) el.innerText = next;
-  }, [obj.text, obj.type, obj.id]);
-
-  // Auto-focus after CREATE_TEXTBOX (UI or voice)
-  useEffect(() => {
-    if (obj.type !== "textbox") return;
-    if (focusObjectId !== obj.id) return;
-    onSelectRef.current?.();
-    const el = textRef.current;
-    if (el) {
-      requestAnimationFrame(() => {
-        el.focus();
-        const range = document.createRange();
-        range.selectNodeContents(el);
-        range.collapse(false);
-        const sel = window.getSelection();
-        sel?.removeAllRanges();
-        sel?.addRange(range);
-      });
-    }
-    clearFocus();
-  }, [focusObjectId, focusNonce, obj.id, obj.type, clearFocus]);
-
-  function beginDrag(e: React.PointerEvent) {
-    if (!editable || !onMoveRef.current) return;
-    const slideEl = nodeRef.current?.closest("article");
-    if (!slideEl) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-    onSelectRef.current?.();
-
-    const rect = slideEl.getBoundingClientRect();
-    const origin = { ...posRef.current };
-    const pointerId = e.pointerId;
-    let moved = false;
-
-    setDragging(true);
-
-    const handlePointerMove = (ev: PointerEvent) => {
-      if (ev.pointerId !== pointerId) return;
-      const dxPct = ((ev.clientX - e.clientX) / rect.width) * 100;
-      const dyPct = ((ev.clientY - e.clientY) / rect.height) * 100;
-      if (Math.abs(dxPct) > 0.25 || Math.abs(dyPct) > 0.25) moved = true;
-      const next = {
-        x: clampPct(origin.x + dxPct, 100 - obj.w),
-        y: clampPct(origin.y + dyPct, 100 - obj.h),
-      };
-      posRef.current = next;
-      setPos(next);
-    };
-
-    const handlePointerUp = (ev: PointerEvent) => {
-      if (ev.pointerId !== pointerId) return;
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-      window.removeEventListener("pointercancel", handlePointerUp);
-      setDragging(false);
-
-      const next = posRef.current;
-      if (moved) onMoveRef.current?.(next.x, next.y);
-      else onSelectRef.current?.();
-    };
-
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-    window.addEventListener("pointercancel", handlePointerUp);
-  }
-
-  const canDrag = Boolean(editable && onMove);
-  const isPageImage = obj.imageHint === "__import_page__";
-  const ghostText = Boolean(importPageMode && obj.type === "textbox" && !selected);
-  const dragFromBody = canDrag && obj.type !== "textbox" && !isPageImage;
-
-  return (
-    <div
-      ref={nodeRef}
-      role="button"
-      tabIndex={0}
-      onClick={(e) => {
-        e.stopPropagation();
-        if (!dragging) onSelect?.();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect?.();
-        }
-      }}
-      className={cn(
-        "absolute overflow-hidden",
-        isPageImage ? "rounded-none" : "rounded-md",
-        dragging ? "z-30 cursor-grabbing transition-none shadow-lg" : "transition",
-        obj.type === "textbox"
-          ? selected
-            ? "z-20 ring-1 ring-zinc-950/40 bg-white/95 shadow-sm"
-            : ghostText
-              ? "z-10 cursor-text"
-              : "z-10"
-          : isPageImage
-            ? "z-0 border-0"
-            : cn(
-                "border border-dashed",
-                selected
-                  ? "z-20 border-zinc-950 ring-2 ring-zinc-950/30"
-                  : "z-10 border-zinc-400/40 hover:border-zinc-700/60"
-              ),
-        dragFromBody && !dragging && "cursor-grab"
-      )}
-      style={{
-        left: `${pos.x}%`,
-        top: `${pos.y}%`,
-        width: `${obj.w}%`,
-        height: `${obj.h}%`,
-        background:
-          obj.type === "textbox"
-            ? selected
-              ? "rgba(255,255,255,0.96)"
-              : "transparent"
-            : obj.type === "image"
-              ? isPageImage
-                ? "transparent"
-                : theme.accentSoft
-              : obj.type === "chart"
-                ? "rgba(0,0,0,0.04)"
-                : theme.accentSoft,
-        touchAction: canDrag ? "none" : undefined,
-        userSelect: dragging ? "none" : undefined,
-      }}
-      onPointerDown={dragFromBody ? beginDrag : undefined}
-    >
-      {canDrag &&
-        !isPageImage &&
-        (obj.type !== "textbox" || selected || dragging) && (
-        <button
-          type="button"
-          aria-label="Drag to move"
-          title="Drag to move"
-          className={cn(
-            "absolute left-0.5 top-0.5 z-10 inline-flex h-6 w-5 items-center justify-center rounded bg-white/90 text-zinc-600 shadow-sm",
-            dragging ? "cursor-grabbing" : "cursor-grab",
-            selected || dragging ? "opacity-100" : "opacity-80 hover:opacity-100"
-          )}
-          onPointerDown={beginDrag}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <GripVertical className="h-3.5 w-3.5" />
-        </button>
-      )}
-
-      {editable && selected && onDelete && !isPageImage && (
-        <button
-          type="button"
-          aria-label={obj.type === "textbox" ? "Delete text" : "Delete"}
-          title={obj.type === "textbox" ? "Delete text" : "Delete"}
-          className="absolute right-0.5 top-0.5 z-20 inline-flex h-6 w-6 items-center justify-center rounded bg-zinc-950 text-white shadow-sm hover:bg-red-600"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      )}
-
-      {obj.type === "textbox" && (
-        <div
-          ref={textRef}
-          contentEditable={Boolean(
-            editable &&
-              onTextChange &&
-              !dragging &&
-              (!importPageMode || selected)
-          )}
-          suppressContentEditableWarning
-          onFocus={() => onSelect?.()}
-          onDoubleClick={(e) => {
-            e.stopPropagation();
-            onSelect?.();
-            textRef.current?.focus();
-          }}
-          onBlur={(e) => onTextChange?.(e.currentTarget.innerText)}
-          onPointerDown={(e) => {
-            e.stopPropagation();
-            onSelect?.();
-          }}
-          className={cn(
-            "h-full w-full px-1 py-0.5 outline-none",
-            selected && "pl-2",
-            selected && !ghostText && "ring-1 ring-zinc-950/15"
-          )}
-          style={{
-            fontSize: obj.fontSize ?? 22,
-            color: ghostText ? "transparent" : theme.slideFg,
-            lineHeight: 1.25,
-            caretColor: theme.slideFg,
-            background:
-              selected && !ghostText && !importPageMode
-                ? "rgba(255,255,255,0.55)"
-                : "transparent",
-          }}
-        />
-      )}
-      {obj.type === "image" &&
-        (obj.src ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={obj.src}
-            alt={
-              isPageImage
-                ? "Imported PDF page"
-                : obj.imageHint || "Imported image"
-            }
-            className={cn(
-              "pointer-events-none h-full w-full",
-              isPageImage ? "object-fill" : "object-cover"
-            )}
-            draggable={false}
-          />
-        ) : (
-          <div className="pointer-events-none flex h-full flex-col items-center justify-center gap-1 p-2 text-center">
-            <ImageIcon className="h-6 w-6 opacity-50" />
-            <p className="text-[10px] leading-snug opacity-70">
-              {obj.imageHint || "Image"}
-            </p>
-          </div>
-        ))}
-      {obj.type === "chart" && (
-        <div className="pointer-events-none flex h-full flex-col items-center justify-center gap-1 p-2 text-center">
-          <BarChart3 className="h-6 w-6 opacity-50" />
-          <p className="text-[10px] leading-snug opacity-70">
-            {obj.chartHint || "Chart"}
-          </p>
-        </div>
-      )}
-      {obj.type === "icon" && (
-        <div className="pointer-events-none flex h-full items-center justify-center">
-          <Sparkles
-            className={cn(
-              "h-7 w-7",
-              obj.iconStyle === "outlined"
-                ? "opacity-70"
-                : "fill-current opacity-90"
-            )}
-            style={{ color: theme.accent }}
-          />
-        </div>
-      )}
-      {obj.type === "shape" && (
-        <div
-          className="pointer-events-none h-full w-full"
-          style={{
-            background: obj.fill || theme.accentSoft,
-            borderRadius: obj.shape === "ellipse" ? "999px" : 6,
-            opacity: 0.85,
-          }}
-        />
-      )}
-    </div>
   );
 }

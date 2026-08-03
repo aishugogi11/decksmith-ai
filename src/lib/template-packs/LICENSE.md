@@ -1,9 +1,9 @@
-# Decksmith Open Template Pack
+# EchoFlow Open Template Pack
 
 **License:** MIT
 
 All templates in `open-pack.ts` are original, programmatically generated skeletons
-created for Decksmith AI. They are **not** scraped or copied from Canva, Beautiful.ai,
+created for EchoFlow AI. They are **not** scraped or copied from Canva, Beautiful.ai,
 Gamma, Slidebean, or other proprietary marketplaces.
 
 You may use, modify, and redistribute these layouts under the MIT License.

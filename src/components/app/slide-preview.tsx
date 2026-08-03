@@ -213,9 +213,10 @@ export function SlidePreview() {
                   <SlideCanvas
                     slide={slide}
                     theme={theme}
-                    editable={selected}
+                    editable
                     onChange={(patch) => updateSlide(slide.id, patch)}
                     className="rounded-sm shadow-[0_18px_40px_rgba(28,25,23,0.1)]"
+                    format={presentation.format}
                   />
                 </div>
                 {slide.notes && selected && (
