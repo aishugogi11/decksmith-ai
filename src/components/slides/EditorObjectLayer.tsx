@@ -304,7 +304,7 @@ export function EditorObjectLayer({
           aria-label="Drag to move"
           title="Drag to move"
           className={cn(
-            "absolute left-1 top-1/2 z-50 flex h-10 w-7 -translate-y-1/2 items-center justify-center rounded-md bg-zinc-950 text-white shadow-lg",
+            "absolute left-1 top-1/2 z-50 flex h-10 w-7 -translate-y-1/2 items-center justify-center rounded-md bg-zinc-950 text-white shadow-lg ring-2 ring-white/80",
             dragging ? "cursor-grabbing" : "cursor-grab"
           )}
           onPointerDown={(e) => {

@@ -111,9 +111,8 @@ export interface Slide {
    * Absolute % positions for layout text fields after the user drags them.
    * When unset, fields stay in the template flow layout.
    */
-  textPositions?: Partial<
-    Record<"title" | "subtitle" | "body" | "callout", { x: number; y: number }>
-  >;
+  /** Absolute % positions for any layout text field key after drag. */
+  textPositions?: Record<string, { x: number; y: number }>;
   /** Optional overlay objects manipulated by the voice command agent */
   objects?: EditorObject[];
 }

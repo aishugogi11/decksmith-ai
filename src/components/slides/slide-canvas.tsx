@@ -56,7 +56,7 @@ function clampPct(n: number, max: number) {
   return Math.max(0, Math.min(max, n));
 }
 
-type LayoutTextField = "title" | "subtitle" | "body" | "callout";
+type LayoutTextField = string;
 
 /** Layout title/subtitle/body — click to type, drag (or grip) to move. */
 function DraggableLayoutText({
@@ -209,7 +209,7 @@ function DraggableLayoutText({
       ref={wrapRef}
       data-layout-field={field}
       className={cn(
-        "pointer-events-auto group/field max-w-full",
+        "pointer-events-auto relative group/field max-w-full",
         abs && "absolute z-20",
         editable && onMove && !dragging && "cursor-text",
         dragging && "z-40 cursor-grabbing"
@@ -238,7 +238,7 @@ function DraggableLayoutText({
           aria-label="Drag to move"
           title="Drag to move"
           className={cn(
-            "absolute -left-1 top-1/2 z-30 flex h-8 w-6 -translate-y-1/2 items-center justify-center rounded-md bg-zinc-950 text-white shadow-md opacity-0 transition-opacity group-hover/field:opacity-100",
+            "absolute -left-1 top-1/2 z-30 flex h-8 w-6 -translate-y-1/2 items-center justify-center rounded-md bg-zinc-950 text-white shadow-md",
             dragging ? "cursor-grabbing opacity-100" : "cursor-grab"
           )}
           onPointerDown={(e) => {
@@ -292,7 +292,7 @@ export function SlideCanvas({
   const square = format === "instagram";
   const moveField =
     edit &&
-    ((field: "title" | "subtitle" | "body" | "callout", x: number, y: number) => {
+    ((field: string, x: number, y: number) => {
       edit({
         textPositions: {
           ...(slide.textPositions ?? {}),
@@ -496,7 +496,8 @@ export function SlideCanvas({
                     className="mt-1 h-2 w-2 shrink-0 rounded-full"
                     style={{ background: theme.accent }}
                   />
-                  <Editable
+                  <DraggableLayoutText
+                    field={`bullet-${i}`}
                     value={b}
                     onChange={
                       edit &&
@@ -505,6 +506,13 @@ export function SlideCanvas({
                         bullets[i] = v;
                         edit({ bullets });
                       })
+                    }
+                    editable={Boolean(edit)}
+                    position={slide.textPositions?.[`bullet-${i}`]}
+                    onMove={
+                      moveField
+                        ? (x, y) => moveField(`bullet-${i}`, x, y)
+                        : undefined
                     }
                     className="text-base leading-relaxed"
                   />
@@ -549,7 +557,8 @@ export function SlideCanvas({
                   className="flex flex-col justify-center rounded-2xl border p-5"
                   style={{ background: theme.card, borderColor: theme.border }}
                 >
-                  <Editable
+                  <DraggableLayoutText
+                    field={`stat-${i}-value`}
                     value={s.value}
                     onChange={
                       edit &&
@@ -559,10 +568,18 @@ export function SlideCanvas({
                         edit({ stats });
                       })
                     }
+                    editable={Boolean(edit)}
+                    position={slide.textPositions?.[`stat-${i}-value`]}
+                    onMove={
+                      moveField
+                        ? (x, y) => moveField(`stat-${i}-value`, x, y)
+                        : undefined
+                    }
                     className="font-[family-name:var(--font-display)] text-4xl font-semibold"
                     style={{ color: theme.accent }}
                   />
-                  <Editable
+                  <DraggableLayoutText
+                    field={`stat-${i}-label`}
                     value={s.label}
                     onChange={
                       edit &&
@@ -571,6 +588,13 @@ export function SlideCanvas({
                         stats[i] = { ...stats[i], label: v };
                         edit({ stats });
                       })
+                    }
+                    editable={Boolean(edit)}
+                    position={slide.textPositions?.[`stat-${i}-label`]}
+                    onMove={
+                      moveField
+                        ? (x, y) => moveField(`stat-${i}-label`, x, y)
+                        : undefined
                     }
                     className="mt-2 text-sm opacity-70"
                   />
@@ -583,17 +607,31 @@ export function SlideCanvas({
         {slide.layout === "quote" && (
           <div className="flex h-full flex-col justify-center gap-6">
             <Quote className="h-8 w-8 opacity-40" style={{ color: theme.accent }} />
-            <Editable
+            <DraggableLayoutText
+              field="quote"
               as="p"
               value={slide.quote ?? slide.title}
               onChange={edit && ((v) => edit({ quote: v }))}
+              editable={Boolean(edit)}
+              position={slide.textPositions?.quote}
+              onMove={
+                moveField ? (x, y) => moveField("quote", x, y) : undefined
+              }
               className="max-w-4xl font-[family-name:var(--font-display)] text-3xl font-medium leading-snug"
             />
             {slide.quoteAuthor && (
-              <Editable
+              <DraggableLayoutText
+                field="quoteAuthor"
                 as="p"
                 value={slide.quoteAuthor}
                 onChange={edit && ((v) => edit({ quoteAuthor: v }))}
+                editable={Boolean(edit)}
+                position={slide.textPositions?.quoteAuthor}
+                onMove={
+                  moveField
+                    ? (x, y) => moveField("quoteAuthor", x, y)
+                    : undefined
+                }
                 className="text-sm uppercase tracking-[0.2em] opacity-60"
               />
             )}
@@ -620,7 +658,8 @@ export function SlideCanvas({
                     className="absolute left-0 top-0 h-1 w-full rounded-full"
                     style={{ background: theme.accent }}
                   />
-                  <Editable
+                  <DraggableLayoutText
+                    field={`timeline-${i}-title`}
                     value={t.title}
                     onChange={
                       edit &&
@@ -630,10 +669,18 @@ export function SlideCanvas({
                         edit({ timeline });
                       })
                     }
+                    editable={Boolean(edit)}
+                    position={slide.textPositions?.[`timeline-${i}-title`]}
+                    onMove={
+                      moveField
+                        ? (x, y) => moveField(`timeline-${i}-title`, x, y)
+                        : undefined
+                    }
                     className="text-sm font-semibold"
                     style={{ color: theme.accent } as React.CSSProperties}
                   />
-                  <Editable
+                  <DraggableLayoutText
+                    field={`timeline-${i}-description`}
                     value={t.description}
                     onChange={
                       edit &&
@@ -642,6 +689,14 @@ export function SlideCanvas({
                         timeline[i] = { ...timeline[i], description: v };
                         edit({ timeline });
                       })
+                    }
+                    editable={Boolean(edit)}
+                    position={slide.textPositions?.[`timeline-${i}-description`]}
+                    onMove={
+                      moveField
+                        ? (x, y) =>
+                            moveField(`timeline-${i}-description`, x, y)
+                        : undefined
                     }
                     className="text-sm leading-relaxed opacity-80"
                   />
@@ -686,7 +741,8 @@ export function SlideCanvas({
                   className="rounded-2xl border p-5"
                   style={{ background: theme.card, borderColor: theme.border }}
                 >
-                  <Editable
+                  <DraggableLayoutText
+                    field={`comparison-${i}-title`}
                     value={col.title}
                     onChange={
                       edit &&
@@ -696,13 +752,51 @@ export function SlideCanvas({
                         edit({ comparison });
                       })
                     }
+                    editable={Boolean(edit)}
+                    position={slide.textPositions?.[`comparison-${i}-title`]}
+                    onMove={
+                      moveField
+                        ? (x, y) => moveField(`comparison-${i}-title`, x, y)
+                        : undefined
+                    }
                     className="mb-4 text-lg font-semibold"
                     style={{ color: theme.accent } as React.CSSProperties}
                   />
                   <ul className="space-y-2">
                     {col.items.map((item, j) => (
                       <li key={j} className="text-sm opacity-85">
-                        • {item}
+                        <span className="mr-1">•</span>
+                        <DraggableLayoutText
+                          field={`comparison-${i}-item-${j}`}
+                          value={item}
+                          onChange={
+                            edit &&
+                            ((v) => {
+                              const comparison = [...(slide.comparison ?? [])];
+                              const items = [...comparison[i].items];
+                              items[j] = v;
+                              comparison[i] = { ...comparison[i], items };
+                              edit({ comparison });
+                            })
+                          }
+                          editable={Boolean(edit)}
+                          position={
+                            slide.textPositions?.[
+                              `comparison-${i}-item-${j}`
+                            ]
+                          }
+                          onMove={
+                            moveField
+                              ? (x, y) =>
+                                  moveField(
+                                    `comparison-${i}-item-${j}`,
+                                    x,
+                                    y
+                                  )
+                              : undefined
+                          }
+                          className="inline"
+                        />
                       </li>
                     ))}
                   </ul>
@@ -738,7 +832,8 @@ export function SlideCanvas({
                   >
                     {i + 1}
                   </div>
-                  <Editable
+                  <DraggableLayoutText
+                    field={`process-${i}-title`}
                     value={step.title}
                     onChange={
                       edit &&
@@ -748,9 +843,17 @@ export function SlideCanvas({
                         edit({ process });
                       })
                     }
+                    editable={Boolean(edit)}
+                    position={slide.textPositions?.[`process-${i}-title`]}
+                    onMove={
+                      moveField
+                        ? (x, y) => moveField(`process-${i}-title`, x, y)
+                        : undefined
+                    }
                     className="text-lg font-semibold"
                   />
-                  <Editable
+                  <DraggableLayoutText
+                    field={`process-${i}-description`}
                     value={step.description}
                     onChange={
                       edit &&
@@ -759,6 +862,16 @@ export function SlideCanvas({
                         process[i] = { ...process[i], description: v };
                         edit({ process });
                       })
+                    }
+                    editable={Boolean(edit)}
+                    position={
+                      slide.textPositions?.[`process-${i}-description`]
+                    }
+                    onMove={
+                      moveField
+                        ? (x, y) =>
+                            moveField(`process-${i}-description`, x, y)
+                        : undefined
                     }
                     className="mt-2 text-sm leading-relaxed opacity-75"
                   />
