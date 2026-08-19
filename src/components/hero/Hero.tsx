@@ -3,21 +3,42 @@
 import { motion } from "framer-motion";
 import Logo from "@/components/brand/Logo";
 import SearchBox from "@/components/search/SearchBox";
+import type { LocationAwarenessStatus } from "@/hooks/useLocationAwareness";
 
 interface HeroProps {
   onSearch: (query: string) => void;
   onDemo: () => void;
+  onSfGuide?: () => void;
   disabled?: boolean;
+  statusMessage?: string | null;
+  locationStatus?: LocationAwarenessStatus;
+  searchingNearYou?: boolean;
+  locationLabel?: string | null;
+  showFallbackForm?: boolean;
+  onSaveFallback?: (cityOrZip: string) => Promise<void>;
+  onRetryGps?: () => void;
+  fallbackBusy?: boolean;
 }
 
 /**
- * First viewport: brand-forward hero + AI search.
- * One composition — brand, headline, support, CTA search, atmospheric map plane.
+ * First viewport: brand-forward hero + location-aware AI search.
  */
-export default function Hero({ onSearch, onDemo, disabled }: HeroProps) {
+export default function Hero({
+  onSearch,
+  onDemo,
+  onSfGuide,
+  disabled,
+  statusMessage,
+  locationStatus,
+  searchingNearYou,
+  locationLabel,
+  showFallbackForm,
+  onSaveFallback,
+  onRetryGps,
+  fallbackBusy,
+}: HeroProps) {
   return (
     <section className="relative flex min-h-[100dvh] flex-col overflow-hidden">
-      {/* Full-bleed atmospheric map plane */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#e8f4f2_0%,_#eef2f7_42%,_#d9e4ef_100%)]" />
         <div className="absolute -left-20 top-10 h-[420px] w-[420px] rounded-full bg-teal-400/20 blur-3xl" />
@@ -32,15 +53,18 @@ export default function Hero({ onSearch, onDemo, disabled }: HeroProps) {
               "radial-gradient(ellipse at center, black 20%, transparent 75%)",
           }}
         />
-        {/* Soft "city glow" horizon */}
         <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-slate-900/10 to-transparent" />
       </div>
 
       <header className="flex items-center justify-between px-5 py-5 sm:px-8">
         <Logo />
-        <span className="rounded-full bg-white/50 px-3 py-1 text-[11px] font-semibold tracking-wide text-slate-600 backdrop-blur">
-          AI place discovery
-        </span>
+        <button
+          type="button"
+          onClick={onSfGuide}
+          className="rounded-full bg-teal-700/90 px-3 py-1 text-[11px] font-semibold tracking-wide text-white backdrop-blur transition hover:bg-teal-800"
+        >
+          Call Lumen
+        </button>
       </header>
 
       <div className="flex flex-1 flex-col items-center justify-center px-5 pb-16 pt-6 text-center sm:px-8">
@@ -55,8 +79,8 @@ export default function Hero({ onSearch, onDemo, disabled }: HeroProps) {
             Know where to go.
           </h1>
           <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-slate-600 sm:text-lg">
-            Stop comparing tabs. Lumen ranks the best place for you — parking,
-            vibe, and travel time included.
+            Search from where you are — Lumen ranks nearby places by vibe,
+            distance, and what you actually asked for.
           </p>
         </motion.div>
 
@@ -70,6 +94,14 @@ export default function Hero({ onSearch, onDemo, disabled }: HeroProps) {
             onSearch={onSearch}
             onDemo={onDemo}
             disabled={disabled}
+            statusMessage={statusMessage}
+            locationStatus={locationStatus}
+            searchingNearYou={searchingNearYou}
+            locationLabel={locationLabel}
+            showFallbackForm={showFallbackForm}
+            onSaveFallback={onSaveFallback}
+            onRetryGps={onRetryGps}
+            fallbackBusy={fallbackBusy}
           />
         </motion.div>
       </div>

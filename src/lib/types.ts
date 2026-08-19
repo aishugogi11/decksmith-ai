@@ -55,6 +55,9 @@ export interface Destination {
   /** Short AI rationale shown on the card */
   aiExplanation: string;
   parking: ParkingOption[];
+  /** Google Maps deep link when results come from Places */
+  googleMapsUri?: string;
+  address?: string;
   /** Raw signals used by the ranking engine */
   signals: {
     reviewQuality: number; // 0–100
@@ -81,12 +84,24 @@ export interface SearchPreferences {
   wantsEv?: boolean;
   maxPrice?: PriceLevel;
   openNow?: boolean;
+  /** Extracted place category hint (e.g. cafe, restaurant) */
+  category?: string;
 }
 
-export type AppPhase = "landing" | "thinking" | "results";
+export type AppPhase = "landing" | "thinking" | "results" | "voice";
 
 export interface SearchResult {
   query: string;
   destinations: RankedDestination[];
   selectedId: string | null;
+  /** demo = local sample data; google = live Places API */
+  source?: "demo" | "google";
+  /** User location used for nearby ranking (live searches) */
+  origin?: GeoPoint;
+  /** True when origin comes from live GPS */
+  searchingNearYou?: boolean;
+  /** "Near you" or saved city/ZIP label */
+  locationLabel?: string;
+  /** Search radius in meters */
+  radiusMeters?: number;
 }

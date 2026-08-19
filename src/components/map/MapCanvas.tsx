@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import type { RankedDestination } from "@/lib/types";
+import type { GeoPoint, RankedDestination } from "@/lib/types";
+import GoogleMapCanvas from "./GoogleMapCanvas";
 import MapPin from "./MapPin";
 import RoutePath from "./RoutePath";
 
@@ -10,17 +11,49 @@ interface MapCanvasProps {
   destinations: RankedDestination[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  source?: "demo" | "google";
+  origin?: GeoPoint | null;
 }
 
 /**
- * Stylized interactive map (no API key).
- * Pins + animated parking→destination walking route for demos.
+ * Live Google Map for Places results; stylized SVG map for Demo Mode.
  */
 export default function MapCanvas({
   destinations,
   selectedId,
   onSelect,
+  source = "demo",
+  origin,
 }: MapCanvasProps) {
+  if (source === "google") {
+    return (
+      <GoogleMapCanvas
+        destinations={destinations}
+        selectedId={selectedId}
+        origin={origin}
+        onSelect={onSelect}
+      />
+    );
+  }
+
+  return (
+    <DemoMapCanvas
+      destinations={destinations}
+      selectedId={selectedId}
+      onSelect={onSelect}
+    />
+  );
+}
+
+function DemoMapCanvas({
+  destinations,
+  selectedId,
+  onSelect,
+}: {
+  destinations: RankedDestination[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+}) {
   const selected =
     destinations.find((d) => d.id === selectedId) ?? destinations[0];
 
@@ -28,7 +61,6 @@ export default function MapCanvas({
     .slice()
     .sort((a, b) => b.score - a.score)[0];
 
-  /** Project lat/lng into a local SVG viewBox for the demo cluster */
   const project = useMemo(() => {
     const lats = destinations.map((d) => d.coordinates.lat);
     const lngs = destinations.map((d) => d.coordinates.lng);
@@ -59,7 +91,6 @@ export default function MapCanvas({
 
   return (
     <div className="relative h-full min-h-[320px] w-full overflow-hidden rounded-2xl border border-white/50 bg-[#dfe8f0] shadow-inner">
-      {/* Soft map atmosphere */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,#ffffff_0%,transparent_50%),radial-gradient(ellipse_at_80%_80%,#c5ddd8_0%,transparent_45%)]" />
       <div
         className="absolute inset-0 opacity-[0.35]"
@@ -70,7 +101,6 @@ export default function MapCanvas({
         }}
       />
 
-      {/* Decorative "streets" */}
       <svg className="absolute inset-0 h-full w-full" aria-hidden>
         <path
           d="M0 65 Q 30 55, 50 70 T 100 60"
@@ -92,7 +122,6 @@ export default function MapCanvas({
         />
       </svg>
 
-      {/* Route parking → destination */}
       {destPt && parkPt && (
         <RoutePath
           key={`${selected?.id}-${bestParking?.id}`}
@@ -101,7 +130,6 @@ export default function MapCanvas({
         />
       )}
 
-      {/* Destination pins */}
       {destinations.map((d, i) => {
         const pt = project(d.coordinates.lat, d.coordinates.lng);
         return (
@@ -118,7 +146,6 @@ export default function MapCanvas({
         );
       })}
 
-      {/* Best parking pin for selected place */}
       {bestParking && parkPt && (
         <MapPin
           key={bestParking.id}

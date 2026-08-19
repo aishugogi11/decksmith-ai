@@ -24,6 +24,6 @@ export function parsePreferences(query: string): SearchPreferences {
     wantsValue: /value|cheap|budget|under|affordable/.test(q),
     wantsEv: /ev|electric|charging/.test(q),
     maxPrice,
-    openNow: /open now|open late|tonight/.test(q) || true,
+    openNow: /open now|open late|tonight/.test(q),
   };
 }

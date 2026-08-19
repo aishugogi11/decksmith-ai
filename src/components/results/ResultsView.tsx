@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import type { SearchResult } from "@/lib/types";
+import { navigationService } from "@/lib/services";
 import Logo from "@/components/brand/Logo";
 import DestinationCard from "./DestinationCard";
 import MapCanvas from "@/components/map/MapCanvas";
@@ -24,6 +25,10 @@ export default function ResultsView({
   const selected =
     result.destinations.find((d) => d.id === result.selectedId) ??
     result.destinations[0];
+
+  const radiusKm = result.radiusMeters
+    ? Math.round(result.radiusMeters / 1000)
+    : 10;
 
   return (
     <motion.div
@@ -62,12 +67,23 @@ export default function ResultsView({
             className="mb-5"
           >
             <p className="text-xs font-semibold uppercase tracking-wider text-teal-700">
-              Ranked for you
+              {result.searchingNearYou
+                ? "Searching near you"
+                : result.locationLabel
+                  ? `Near ${result.locationLabel}`
+                  : result.source === "google"
+                    ? "Live from Google Places"
+                    : "Demo ranking"}
             </p>
             <h2 className="mt-1 font-[family-name:var(--font-display)] text-2xl tracking-tight text-slate-900 sm:text-3xl">
               Best matches nearby
             </h2>
-            <p className="mt-1 text-sm text-slate-500">“{result.query}”</p>
+            <p className="mt-1 text-sm text-slate-500">
+              “{result.query}”
+              {result.origin
+                ? ` · within ${radiusKm} km`
+                : " · no location filter"}
+            </p>
           </motion.div>
 
           <div className="space-y-4">
@@ -78,6 +94,7 @@ export default function ResultsView({
                 index={index}
                 selected={place.id === selected?.id}
                 onSelect={onSelect}
+                origin={result.origin}
               />
             ))}
           </div>
@@ -89,9 +106,27 @@ export default function ResultsView({
               destinations={result.destinations}
               selectedId={selected?.id ?? null}
               onSelect={onSelect}
+              source={result.source}
+              origin={result.origin}
             />
           </div>
           {selected && <ParkingPanel place={selected} />}
+          {selected && (
+            <button
+              type="button"
+              onClick={() =>
+                navigationService.navigateToPlace({
+                  coordinates: selected.coordinates,
+                  name: selected.name,
+                  placeId: selected.id,
+                  origin: result.origin,
+                })
+              }
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              Navigate
+            </button>
+          )}
 
           {selected && (
             <motion.div
