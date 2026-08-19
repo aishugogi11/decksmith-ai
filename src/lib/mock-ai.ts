@@ -1,7 +1,7 @@
 import type { ChatMessage, Presentation, Slide, ThemeId } from "@/lib/types";
 import { uid } from "@/lib/utils";
 
-/** Mock quantum-computing deck for the demo flow. */
+/** Mock quantum-computing slides for the demo flow. */
 export function createQuantumDeck(themeId: ThemeId = "education"): Presentation {
   const now = new Date().toISOString();
   const slides: Slide[] = [
@@ -143,14 +143,14 @@ export function emptyPresentation(): Presentation {
   const now = new Date().toISOString();
   return {
     id: uid("deck"),
-    title: "Untitled deck",
+    title: "Untitled slides",
     subtitle: "Bring existing work — or research something new",
     themeId: "minimal",
     slides: [
       {
         id: uid("slide"),
         layout: "hero",
-        title: "Transform a deck you already have",
+        title: "Transform slides you already have",
         subtitle: "Import · Redesign from feedback · Research · Coach",
         body: "Try: “Make this look like an Apple Keynote.”",
       },
@@ -160,7 +160,7 @@ export function emptyPresentation(): Presentation {
   };
 }
 
-/** Biography / life-story deck — used for Steve Jobs and other subjects. */
+/** Biography / life-story slides — used for Steve Jobs and other subjects. */
 export function createBiographyDeck(
   subject: string,
   themeId: ThemeId = "minimal"
@@ -362,7 +362,7 @@ export function createBiographyDeck(
   };
 }
 
-/** Generic topic deck when the prompt isn’t quantum or biography. */
+/** Generic topic slides when the prompt isn’t quantum or biography. */
 export function createTopicDeck(
   topic: string,
   themeId: ThemeId = "startup"
@@ -517,7 +517,7 @@ export function extractSlideCount(text: string): number | null {
   return null;
 }
 
-/** Trim or pad a deck so it matches the requested slide count. */
+/** Trim or pad slides so it matches the requested slide count. */
 export function fitSlideCount(deck: Presentation, count: number): Presentation {
   const target = Math.min(16, Math.max(3, count));
   const slides = [...deck.slides];
@@ -588,7 +588,7 @@ export function fitSlideCount(deck: Presentation, count: number): Presentation {
 }
 
 export const SUGGESTED_PROMPTS = [
-  "Create a modern investor pitch deck for a healthcare startup",
+  "Create modern investor pitch slides for a healthcare startup",
   "Steve Jobs biography in 6 slides",
   "Quantum computing for students — 8 slides",
   "Make this more modern — Apple style.",
@@ -622,15 +622,15 @@ export async function* mockStreamAssistant(
   let deck: Presentation;
 
   if (bioSubject) {
-    intro = `Your biography deck for ${bioSubject}${
+    intro = `Your biography slides for ${bioSubject}${
       slideCount ? ` in ${slideCount} slides` : ""
-    } is on the way — timeline, impact, quotes, and takeaways…`;
+    } are on the way — timeline, impact, quotes, and takeaways…`;
     deck = createBiographyDeck(
       bioSubject,
       resolveThemeFromPrompt(lower, bioSubject === "Steve Jobs" ? "apple" : "minimal")
     );
   } else if (wantsQuantum) {
-    intro = `Absolutely — a clear quantum computing deck${
+    intro = `Absolutely — clear quantum computing slides${
       slideCount ? ` (${slideCount} slides)` : ""
     } for high school students…`;
     deck = createQuantumDeck(resolveThemeFromPrompt(lower, "education"));
@@ -642,7 +642,7 @@ export async function* mockStreamAssistant(
     deck.subtitle = "Clear story. Sharp proof points.";
   } else {
     const topic = topicFromPrompt(userText);
-    intro = `Got it — shaping a polished deck on “${topic}”${
+    intro = `Got it — shaping polished slides on “${topic}”${
       slideCount ? ` with ${slideCount} slides` : ""
     }…`;
     deck = createTopicDeck(topic, resolveThemeFromPrompt(lower, "startup"));

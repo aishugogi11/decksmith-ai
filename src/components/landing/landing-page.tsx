@@ -60,7 +60,7 @@ export function LandingPage() {
               EchoFlow
             </h1>
             <p className="mt-5 text-xl font-semibold tracking-tight text-zinc-800 sm:text-2xl">
-              Import a deck. Redesign from feedback. Research what&apos;s
+              Import slides. Redesign from feedback. Research what&apos;s
               missing.
             </p>
             <p className="mt-4 max-w-lg text-base leading-relaxed text-zinc-600 sm:text-lg">
@@ -102,7 +102,7 @@ export function LandingPage() {
             <FeatureBlock
               icon={Upload}
               title="Bring existing work"
-              body="Upload PPTX or PDF. Editable objects on the canvas — so you improve the deck you already built."
+              body="Upload PPTX or PDF. Editable objects on the canvas — so you improve the slides you already built."
             />
             <FeatureBlock
               icon={MessageSquareWarning}
@@ -111,8 +111,8 @@ export function LandingPage() {
             />
             <FeatureBlock
               icon={Search}
-              title="Research + Coach"
-              body="Pull current stats and citations, then check delivery readiness before you present."
+              title="Research"
+              body="Pull current stats and citations to strengthen your slides before you present."
             />
             <FeatureBlock
               icon={Mic}

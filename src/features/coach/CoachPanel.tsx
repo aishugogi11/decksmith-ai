@@ -37,7 +37,7 @@ export function CoachPanel() {
           </div>
           <p className="mt-1 text-xs text-zinc-500">
             Estimated speaking time plus Apply / Rewrite suggestions on the open
-            deck.
+            slides.
           </p>
         </div>
       </div>
@@ -67,7 +67,7 @@ export function CoachPanel() {
           ) : (
             <Sparkles className="h-4 w-4" />
           )}
-          Analyze deck
+          Analyze slides
         </button>
       </ProGate>
 

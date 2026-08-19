@@ -121,7 +121,7 @@ export const useSubscriptionStore = create<SubStore>((set, get) => ({
     const usage = get().usage;
     if (usage.presentationCount >= FREE_LIMITS.maxPresentations) {
       get().openUpgrade(
-        `Free plan allows ${FREE_LIMITS.maxPresentations} presentations. Upgrade to Pro for unlimited decks.`
+        `Free plan allows ${FREE_LIMITS.maxPresentations} presentations. Upgrade to Pro for unlimited slides.`
       );
       return false;
     }

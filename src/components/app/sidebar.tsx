@@ -20,7 +20,6 @@ export function AppSidebar() {
   const sidebarOpen = usePresentationStore((s) => s.sidebarOpen);
   const setSidebarOpen = usePresentationStore((s) => s.setSidebarOpen);
   const newPresentation = usePresentationStore((s) => s.newPresentation);
-  const setTemplatesOpen = usePresentationStore((s) => s.setTemplatesOpen);
   const presentation = usePresentationStore((s) => s.presentation);
 
   return (
@@ -71,7 +70,9 @@ export function AppSidebar() {
       <nav className="mt-4 space-y-1 px-2">
         <button
           type="button"
-          onClick={() => setTemplatesOpen(true)}
+          onClick={() =>
+            void usePresentationStore.getState().browseTemplateExamples()
+          }
           className={cn(
             "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm text-stone-400 transition hover:bg-white/8 hover:text-[var(--paper)]",
             !sidebarOpen && "justify-center"

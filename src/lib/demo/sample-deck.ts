@@ -2,7 +2,7 @@ import type { Presentation } from "@/lib/types";
 import { uid } from "@/lib/utils";
 
 /**
- * Realistic “imported” investor deck for the product demo —
+ * Realistic “imported” investor slides for the product demo —
  * intentional density issues so Redesign / Coach / Voice have something to fix.
  */
 export function createImportedPitchDemo(): Presentation {
@@ -119,7 +119,7 @@ export function createImportedPitchDemo(): Presentation {
   return {
     id: uid("deck"),
     title: "NovaCare — Series A",
-    subtitle: "Demo: imported deck ready to transform",
+    subtitle: "Demo: imported slides ready to transform",
     themeId: "startup",
     slides,
     createdAt: now,

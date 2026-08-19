@@ -94,6 +94,8 @@ export function emptyCollaboratorState(): CollaboratorState {
 export function isVagueCreateRequest(text: string): boolean {
   const t = text.trim().toLowerCase();
   if (t.length > 120) return false;
+  // Explicit template browse → gallery, not interview
+  if (/\btemplates?\b/.test(t)) return false;
   if (
     /who is|should it|do you want|would you like|audience|dark mode|charts\?/.test(
       t
@@ -104,7 +106,10 @@ export function isVagueCreateRequest(text: string): boolean {
   // Enough topic signal → show template picker instead of interviewing
   if (
     /\b(for|about|on)\b\s+[\w][\w\s-]{1,40}/.test(t) ||
-    /\b(product design|investor|startup|healthcare|saas|ux|ui)\b/.test(t)
+    /\b(product design|product improvement|investor|startup|healthcare|saas|ux|ui)\b/.test(
+      t
+    ) ||
+    /\bimprov(?:e|ing)\s+(?:a\s+|my\s+|the\s+)?product\b/.test(t)
   ) {
     return false;
   }

@@ -26,7 +26,23 @@ const TYPE_RULES: { type: PresentationType; patterns: RegExp[] }[] = [
   { type: "biography", patterns: [/biograph/, /\bbio\b/, /life\s*story/, /steve\s*jobs/] },
   { type: "education", patterns: [/lesson/, /classroom/, /students?/, /teach/, /course/, /quantum/] },
   { type: "marketing", patterns: [/marketing/, /campaign/, /brand/, /go-?to-?market/] },
-  { type: "product", patterns: [/product\s*launch/, /product\s*design/, /roadmap/, /feature/, /saas/, /\bux\b/, /\bui\b/] },
+  {
+    type: "product",
+    patterns: [
+      /product\s*launch/,
+      /product\s*design/,
+      /product\s*improvement/,
+      /improv(?:e|ing)\s+(?:a\s+|my\s+|the\s+)?product/,
+      /improving\s+a\s+product/,
+      /roadmap/,
+      /feature/,
+      /saas/,
+      /\bux\b/,
+      /\bui\b/,
+      /prd\b/,
+      /product\s*review/,
+    ],
+  },
   { type: "sales", patterns: [/sales/, /pipeline/, /quota/, /prospect/] },
   { type: "portfolio", patterns: [/portfolio/, /case\s*stud/, /design\s*portfolio/] },
   { type: "nonprofit", patterns: [/nonprofit/, /charity/, /donor/, /mission\s*impact/] },
@@ -145,7 +161,7 @@ export function analyzePresentationIntent(raw: string): PresentationIntent {
   const slideCount = extractSlideCount(raw) ?? undefined;
 
   const bits = [
-    presentationType && `${presentationType} deck`,
+    presentationType && `${presentationType} slides`,
     industry.length && industry.join(" / "),
     audience.length && `for ${audience.join(", ")}`,
     visualStyle.length && `${visualStyle.join(", ")} style`,
@@ -181,7 +197,26 @@ function extractSubject(text: string): string | undefined {
   return subject.length > 2 ? subject : undefined;
 }
 
-/** True when the user is asking to start / find a deck (vs. edit the current one). */
+/** Explicit ask to browse / pick templates (always open the gallery). */
+export function isTemplatePickerRequest(text: string): boolean {
+  const lower = text.toLowerCase().trim();
+  if (!lower) return false;
+  if (
+    /^(make this|restyle|shorter|longer|add a|remove|change the|rewrite|edit)\b/.test(
+      lower
+    )
+  ) {
+    return false;
+  }
+  return (
+    /\btemplates?\b/.test(lower) &&
+    /\b(provide|show|give|find|recommend|suggest|browse|list|need|want|create|make|build|generate|pick|choose|use|for)\b/.test(
+      lower
+    )
+  );
+}
+
+/** True when the user is asking to start / find slides (vs. edit the current one). */
 export function isTemplateDiscoveryIntent(text: string): boolean {
   const lower = text.toLowerCase();
   if (
@@ -191,8 +226,11 @@ export function isTemplateDiscoveryIntent(text: string): boolean {
   ) {
     return false;
   }
+  if (isTemplatePickerRequest(lower)) return true;
   return (
-    /\b(create|make|build|generate|need|want|find|recommend|suggest)\b/.test(lower) ||
+    /\b(create|make|build|generate|need|want|find|recommend|suggest|provide|show)\b/.test(
+      lower
+    ) ||
     /\b(presentation|deck|template|pitch|biography|lesson)\b/.test(lower) ||
     /\b\d+\s*-?\s*slides?\b/.test(lower)
   );

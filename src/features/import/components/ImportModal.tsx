@@ -56,7 +56,7 @@ export function ImportModal() {
   function handleOpen(openAnalysis = false) {
     if (!result) return;
     loadImportedPresentation(result.presentation, {
-      sourceLabel: fileName || "imported deck",
+      sourceLabel: fileName || "imported slides",
       openAnalysis,
     });
     closeModal();
@@ -98,7 +98,7 @@ export function ImportModal() {
             <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4">
               <div>
                 <p className="text-sm font-bold text-zinc-950">
-                  Bring an existing deck
+                  Bring existing slides
                 </p>
                 <p className="text-xs text-zinc-500">
                   Upload work you already have — then redesign it

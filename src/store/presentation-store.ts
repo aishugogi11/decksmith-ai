@@ -201,13 +201,15 @@ interface PresentationState {
     text: string,
     opts?: { silent?: boolean }
   ) => Promise<void>;
-  /** Reload the demo deck (original version). */
+  /** Reload the demo slides (original version). */
   restoreOriginalDeck: () => Promise<void>;
   applyDemoDeck: () => Promise<void>;
   findTemplates: (
     prompt: string,
     opts?: { reuseChat?: boolean }
   ) => Promise<void>;
+  /** Open the recommendations carousel with curated template examples (no AI search). */
+  browseTemplateExamples: () => Promise<void>;
   selectRecommendation: (templateId: string) => void;
   customizeRecommendation: (
     templateId: string,
@@ -255,7 +257,7 @@ function pushHistory(state: PresentationState): Partial<PresentationState> {
   };
 }
 
-/** Voice/chat: restore the original demo deck. */
+/** Voice/chat: restore the original demo slides. */
 function isRestoreOriginalIntent(text: string): boolean {
   const t = text.toLowerCase().replace(/[’']/g, "'");
   return (
@@ -316,7 +318,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
       id: uid("msg"),
       role: "assistant",
       content:
-        "Hi — I'm EchoFlow. Bring an existing deck, research a topic, or paste feedback to redesign. Voice works anytime — try “Make this look like an Apple Keynote.”",
+        "Hi — I'm EchoFlow. Bring existing slides, research a topic, or paste feedback to redesign. Voice works anytime — try “Make this look like an Apple Keynote.”",
       createdAt: new Date().toISOString(),
     },
   ],
@@ -772,7 +774,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
         {
           id: uid("msg"),
           role: "assistant",
-          content: "New canvas ready. Bring an existing deck, research a topic, or start from a template if you need a shell.",
+          content: "New canvas ready. Bring existing slides, research a topic, or start from a template if you need a shell.",
           createdAt: new Date().toISOString(),
         },
       ],
@@ -876,7 +878,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
   },
 
   loadImportedPresentation: (presentation, opts) => {
-    const label = opts?.sourceLabel || presentation.title || "imported deck";
+    const label = opts?.sourceLabel || presentation.title || "imported slides";
     set((state) => ({
       ...pushHistory(state),
       presentation: {
@@ -893,7 +895,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
         {
           id: uid("msg"),
           role: "assistant",
-          content: `Imported “${label}” (${presentation.slides.length} slides). Next: Redesign from feedback, Research for evidence, Coach before you present — or say “Make this look like an Apple Keynote.”`,
+          content: `Imported “${label}” (${presentation.slides.length} slides). Next: Redesign from feedback, Research for evidence — or say “Make this look like an Apple Keynote.”`,
           createdAt: new Date().toISOString(),
         },
       ],
@@ -1028,6 +1030,80 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
       return next;
     }),
 
+  browseTemplateExamples: async () => {
+    set({ isRecommending: true, recommendationsOpen: true });
+    try {
+      const catalog = await listAllTemplates();
+      const byType = new Map<string, TemplateRecord[]>();
+      for (const t of catalog) {
+        const list = byType.get(t.presentationType) ?? [];
+        list.push(t);
+        byType.set(t.presentationType, list);
+      }
+      // Diverse set: one+ from each type, then fill to 12
+      const featured: TemplateRecord[] = [];
+      const seen = new Set<string>();
+      for (const list of byType.values()) {
+        const first = list[0];
+        if (first && !seen.has(first.id)) {
+          featured.push(first);
+          seen.add(first.id);
+        }
+        if (featured.length >= 12) break;
+      }
+      for (const t of catalog) {
+        if (featured.length >= 12) break;
+        if (!seen.has(t.id)) {
+          featured.push(t);
+          seen.add(t.id);
+        }
+      }
+      const matches: TemplateMatch[] = featured.map((template, i) => ({
+        template,
+        score: 1 - i * 0.02,
+        reasons: [
+          template.presentationType,
+          ...template.tags.slice(0, 2),
+          template.layoutStyle,
+        ].filter(Boolean),
+      }));
+      set({
+        isRecommending: false,
+        recommendations: toRecommendationMatches(matches),
+        recommendationsOpen: true,
+        recommendPrompt: "Slide template examples",
+        recommendIntent: {
+          raw: "examples",
+          industry: [],
+          audience: [],
+          visualStyle: [],
+          tone: [],
+          keywords: [],
+          summary: "Choose template slides",
+        },
+        selectedRecommendationId: matches[0]?.template.id ?? null,
+        libraryTab: "templates",
+        templatesOpen: false,
+      });
+    } catch {
+      set({
+        isRecommending: false,
+        recommendationsOpen: true,
+        recommendations: [],
+        recommendPrompt: "Slide template examples",
+        recommendIntent: {
+          raw: "examples",
+          industry: [],
+          audience: [],
+          visualStyle: [],
+          tone: [],
+          keywords: [],
+          summary: "Choose template slides",
+        },
+      });
+    }
+  },
+
   findTemplates: async (prompt, opts) => {
     const trimmed = prompt.trim();
     if (!trimmed || get().isRecommending) return;
@@ -1062,19 +1138,41 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
 
     try {
       const result = await recommendTemplates(trimmed, 8);
-      const matches = toRecommendationMatches(result.matches);
+      let matches = toRecommendationMatches(result.matches);
+
+      // Always surface something in the carousel — never leave the panel empty
+      if (!matches.length) {
+        const catalog = await listAllTemplates();
+        const type = result.intent.presentationType;
+        const preferred = type
+          ? catalog.filter((t) => t.presentationType === type)
+          : catalog;
+        const pool = preferred.length ? preferred : catalog;
+        matches = toRecommendationMatches(
+          pool.slice(0, 8).map((template, i) => ({
+            template,
+            score: 0.55 - i * 0.03,
+            reasons: [
+              type ? `related: ${type}` : "library pick",
+              ...template.tags.slice(0, 2),
+            ],
+          }))
+        );
+      }
+
       const topNames = matches
         .slice(0, 3)
         .map((m) => m.template.name)
         .join(", ");
       const content = matches.length
-        ? `Found ${matches.length} strong matches${
+        ? `Found ${matches.length} templates${
             result.intent.summary ? ` for “${result.intent.summary}”` : ""
           }. Top picks: ${topNames}. Preview them, then Customize.`
-        : "I couldn’t find a strong template match. Try adding type, audience, or style — or browse the full library.";
+        : "Browse the full library from Templates if you want more options.";
 
       set((state) => ({
         isRecommending: false,
+        recommendationsOpen: true,
         recommendations: matches,
         recommendIntent: result.intent,
         selectedRecommendationId: matches[0]?.template.id ?? null,
@@ -1093,6 +1191,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
     } catch (err) {
       set((state) => ({
         isRecommending: false,
+        recommendationsOpen: true,
         messages: state.messages.map((m, i, arr) =>
           i === arr.length - 1
             ? {
@@ -1194,7 +1293,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
     if (!trimmed || get().isGenerating || get().isRecommending) return;
     const silent = opts?.silent === true;
 
-    // Restore original demo deck
+    // Restore original demo slides
     if (isRestoreOriginalIntent(trimmed)) {
       set((state) => ({
         voiceStatus: "processing",
@@ -1203,7 +1302,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
           : [
               ...state.messages,
               makeUserMessage(trimmed),
-              makeAssistantMessage("Restoring the original demo deck…", true),
+              makeAssistantMessage("Restoring the original demo slides…", true),
             ],
       }));
       await get().restoreOriginalDeck();
@@ -1212,13 +1311,13 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
         messages: silent
           ? [
               ...state.messages,
-              makeAssistantMessage("Restored the original demo deck."),
+              makeAssistantMessage("Restored the original demo slides."),
             ]
           : state.messages.map((m, i, arr) =>
               i === arr.length - 1 && m.role === "assistant"
                 ? {
                     ...m,
-                    content: "Restored the original demo deck.",
+                    content: "Restored the original demo slides.",
                     streaming: false,
                   }
                 : m
@@ -1546,7 +1645,7 @@ export const usePresentationStore = create<PresentationState>((set, get) => ({
       },
       analysis,
       error: null,
-      progressMessage: "Demo deck ready",
+      progressMessage: "Demo slides ready",
       modalOpen: false,
     });
     get().loadImportedPresentation(deck, {

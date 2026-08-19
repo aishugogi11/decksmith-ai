@@ -72,7 +72,7 @@ function patchSlide(id: string, patch: Partial<Slide>): EditPatch {
 export const EDIT_COMMANDS: EditCommandHandler[] = [
   {
     id: "redesign.instagram",
-    description: "Redesign deck as an Instagram carousel / post set",
+    description: "Redesign slides as an Instagram carousel / post set",
     match: (t) => (isInstagramRedesignIntent(t) ? 0.98 : 0),
     apply: (_t, presentation, target) => {
       const next = redesignForInstagram(presentation);
@@ -98,7 +98,7 @@ export const EDIT_COMMANDS: EditCommandHandler[] = [
       /apple|company colors|brand colors|our brand/.test(t) ? 0.9 : 0,
     apply: (_t, _p, target) => ({
       patch: { ...emptyPatch(), themeId: "apple" as ThemeId },
-      reply: "Applied Apple-style / brand-forward colors across the deck.",
+      reply: "Applied Apple-style / brand-forward colors across the slides.",
       referent: { kind: "theme", slideId: target.slideId },
       themePersonality: "minimal",
     }),
@@ -109,7 +109,7 @@ export const EDIT_COMMANDS: EditCommandHandler[] = [
     match: (t) => (/dark mode|dark theme|make it dark/.test(t) ? 0.95 : 0),
     apply: (_t, _p, target) => ({
       patch: { ...emptyPatch(), themeId: "dark" },
-      reply: "Applied dark mode across the deck.",
+      reply: "Applied dark mode across the slides.",
       referent: { kind: "theme", slideId: target.slideId },
       themePersonality: "bold",
     }),
@@ -479,7 +479,7 @@ export const EDIT_COMMANDS: EditCommandHandler[] = [
       ids.push(target.slideId);
       return {
         patch: { ...emptyPatch(), reorder: ids },
-        reply: "Moved this slide to the end of the deck.",
+        reply: "Moved this slide to the end of the slides.",
         referent: { kind: "slide", slideId: target.slideId },
       };
     },

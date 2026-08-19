@@ -190,7 +190,7 @@ export const useVisualAssistantStore = create<VisualAssistantState>((set, get) =
         id: uid("va"),
         role: "assistant",
         content:
-          "Here are illustration-leaning options that match your deck style. Pick one to place.",
+          "Here are illustration-leaning options that match your slides style. Pick one to place.",
         at: new Date().toISOString(),
         candidates,
         searchQueries: queries,

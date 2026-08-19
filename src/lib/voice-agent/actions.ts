@@ -639,7 +639,7 @@ export function ensureEditorActionsRegistered(): void {
 
   registerEditorAction({
     name: "change_theme",
-    description: "Change the deck theme / brand colors.",
+    description: "Change the slides theme / brand colors.",
     params: [
       {
         name: "themeId",
@@ -724,7 +724,7 @@ export function ensureEditorActionsRegistered(): void {
 
   registerEditorAction({
     name: "replace_icons_style",
-    description: "Replace every icon’s style across the deck (filled ↔ outlined).",
+    description: "Replace every icon’s style across the slides (filled ↔ outlined).",
     params: [
       {
         name: "iconStyle",
@@ -935,7 +935,7 @@ export function ensureEditorActionsRegistered(): void {
   registerEditorAction({
     name: "redesign_for_instagram",
     description:
-      "Restyle the open deck as an Instagram carousel — square frames, short captions, bold type.",
+      "Restyle the open slides as an Instagram carousel — square frames, short captions, bold type.",
     params: [],
     examples: [
       "Redesign this for Instagram",

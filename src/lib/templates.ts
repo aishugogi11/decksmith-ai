@@ -35,7 +35,7 @@ export const TEMPLATE_CATEGORIES: {
   label: string;
 }[] = [
   { id: "all", label: "All" },
-  { id: "pitch", label: "Pitch decks" },
+  { id: "pitch", label: "Pitch slides" },
   { id: "business", label: "Business" },
   { id: "education", label: "Education" },
   { id: "marketing", label: "Marketing" },
@@ -258,7 +258,7 @@ export const DECK_TEMPLATES: DeckTemplate[] = [
   },
   {
     id: "tpl-sales-deck",
-    name: "Sales Deck",
+    name: "Sales Slides",
     category: "business",
     description: "Discovery → value → proof → next step.",
     themeId: "microsoft",
@@ -1109,7 +1109,7 @@ export const DECK_TEMPLATES: DeckTemplate[] = [
   },
   {
     id: "tpl-interview",
-    name: "Job Interview Deck",
+    name: "Job Interview Slides",
     category: "personal",
     description: "Present your story for interviews or promotions.",
     themeId: "microsoft",

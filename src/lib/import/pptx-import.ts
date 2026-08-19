@@ -37,7 +37,7 @@ export async function importPptxAsTemplate(
     slides.push(slideFromTexts(layout, title, rest));
   }
 
-  const baseName = fileName.replace(/\.pptx$/i, "") || "Imported deck";
+  const baseName = fileName.replace(/\.pptx$/i, "") || "Imported slides";
   const id = uid("user-pptx");
 
   return {

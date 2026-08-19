@@ -133,7 +133,7 @@ export function buildDesignSuggestions(
     out.push({
       id: uid("sug"),
       severity: "info",
-      title: "Deck may be long",
+      title: "Slides may be long",
       message: `This presentation could be shortened by ~3 slides (currently ${presentation.slides.length}).`,
       action: {
         type: "patch",

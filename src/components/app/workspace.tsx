@@ -5,7 +5,6 @@ import {
   Briefcase,
   Crown,
   FolderKanban,
-  GraduationCap,
   LayoutTemplate,
   MessageSquareWarning,
   Palette,
@@ -36,7 +35,6 @@ type RailId =
   | "research"
   | "redesign"
   | "import"
-  | "coach"
   | "templates"
   | "themes"
   | "text"
@@ -52,7 +50,6 @@ const RAIL_PRIMARY: {
   { id: "research", label: "Research", icon: Search, pro: true },
   { id: "redesign", label: "Redesign", icon: MessageSquareWarning, pro: true },
   { id: "import", label: "Import", icon: Upload },
-  { id: "coach", label: "Coach", icon: GraduationCap, pro: true },
 ];
 
 const RAIL_SECONDARY: {
@@ -69,7 +66,7 @@ const RAIL_SECONDARY: {
 ];
 
 /**
- * Studio shell — Research / Redesign / Import / Coach first; templates demoted.
+ * Studio shell — Research / Redesign / Import first; templates demoted.
  */
 export function Workspace() {
   const rowRef = useRef<HTMLDivElement>(null);
@@ -79,6 +76,7 @@ export function Workspace() {
 
   const libraryTab = usePresentationStore((s) => s.libraryTab);
   const templatesOpen = usePresentationStore((s) => s.templatesOpen);
+  const recommendationsOpen = usePresentationStore((s) => s.recommendationsOpen);
   const panelTab = usePresentationStore((s) => s.panelTab);
   const setLibraryTab = usePresentationStore((s) => s.setLibraryTab);
   const setPanelTab = usePresentationStore((s) => s.setPanelTab);
@@ -160,9 +158,13 @@ export function Workspace() {
 
   function isActive(id: RailId): boolean {
     if (id === "redesign") return !templatesOpen && panelTab === "feedback";
-    if (id === "coach") return !templatesOpen && panelTab === "coach";
     if (id === "import") return !templatesOpen && panelTab === "import";
     if (id === "research") return templatesOpen && libraryTab === "research";
+    if (id === "templates")
+      return (
+        recommendationsOpen ||
+        (templatesOpen && libraryTab === "templates")
+      );
     return templatesOpen && libraryTab === (id as LibraryTab);
   }
 
@@ -173,20 +175,16 @@ export function Workspace() {
           ? "research_mode"
           : id === "redesign"
             ? "feedback_redesign"
-            : id === "coach"
-              ? "presentation_coach"
-              : id === "brand"
-                ? "brand_kit"
-                : null;
+            : id === "brand"
+              ? "brand_kit"
+              : null;
       if (flag && !hasFeature(flag)) {
         openUpgrade(
           id === "research"
             ? "Research Mode is a Pro feature."
             : id === "redesign"
               ? "Feedback → Redesign is a Pro feature."
-              : id === "coach"
-                ? "Presentation Coach is a Pro feature."
-                : "Brand Kit is a Pro feature."
+              : "Brand Kit is a Pro feature."
         );
         return;
       }
@@ -201,17 +199,16 @@ export function Workspace() {
       setPanelTab("feedback");
       return;
     }
-    if (id === "coach") {
-      setTemplatesOpen(false);
-      setPanelTab("coach");
+    if (id === "templates") {
+      void usePresentationStore.getState().browseTemplateExamples();
       return;
     }
     setLibraryTab(id as LibraryTab);
   }
 
   const contextLabel = presentation.importMeta
-    ? "Imported deck · Feedback · Research · Coach"
-    : "Feedback · Research · Coach · Voice";
+    ? "Imported slides · Feedback · Research"
+    : "Feedback · Research · Voice";
 
   function renderRailItem(item: (typeof RAIL_PRIMARY)[number]) {
     const Icon = item.icon;
@@ -220,7 +217,6 @@ export function Workspace() {
       item.pro &&
       ((item.id === "research" && !hasFeature("research_mode")) ||
         (item.id === "redesign" && !hasFeature("feedback_redesign")) ||
-        (item.id === "coach" && !hasFeature("presentation_coach")) ||
         (item.id === "brand" && !hasFeature("brand_kit")));
 
     return (

@@ -42,7 +42,9 @@ export function ChatPanel() {
             type="button"
             variant="secondary"
             size="sm"
-            onClick={() => usePresentationStore.getState().setTemplatesOpen(true)}
+            onClick={() =>
+              void usePresentationStore.getState().browseTemplateExamples()
+            }
           >
             <Sparkles className="h-3.5 w-3.5" />
             Templates
@@ -114,7 +116,7 @@ export function ChatPanel() {
               }
             }}
             rows={2}
-            placeholder="Describe the deck you want…"
+            placeholder="Describe the slides you want…"
             className="max-h-40 min-h-[52px] flex-1 resize-none bg-transparent px-3 py-2 text-sm text-[var(--ink)] placeholder:text-stone-400 focus:outline-none"
           />
           <Button

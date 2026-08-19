@@ -102,7 +102,7 @@ export async function parseEchoFlowJsonFile(file: File): Promise<ImportResult> {
   const portable = data as Portable;
   if (!portable?.name || !Array.isArray(portable.slides)) {
     throw new Error(
-      "Unrecognized EchoFlow JSON — expected presentation, deck file, or template."
+      "Unrecognized EchoFlow JSON — expected presentation, slides file, or template."
     );
   }
 

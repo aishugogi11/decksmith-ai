@@ -7,7 +7,6 @@ import {
   BookMarked,
   Bug,
   FileUp,
-  GraduationCap,
   History,
   ImageIcon,
   Lightbulb,
@@ -22,7 +21,6 @@ import {
 import { WorkflowChooser } from "@/components/app/WorkflowChooser";
 import { Button } from "@/components/ui/button";
 import { CITATION_STYLES, type CitationStyle } from "@/lib/ai/citations";
-import { CoachPanel } from "@/features/coach/CoachPanel";
 import { EditorDebugPanel } from "@/features/editor/EditorDebugPanel";
 import { FeedbackPanel } from "@/features/feedback";
 import { ImportAnalysisPanel } from "@/features/import";
@@ -207,7 +205,6 @@ export function StudioPanel({ compact: _compact = false }: { compact?: boolean }
     { id: "chat" as const, label: "Voice", icon: MessageSquare },
     { id: "visuals" as const, label: "Visuals", icon: ImageIcon },
     { id: "feedback" as const, label: "Redesign", icon: MessageSquareWarning, pro: true as const },
-    { id: "coach" as const, label: "Coach", icon: GraduationCap, pro: true as const },
     { id: "import" as const, label: "Import", icon: FileUp },
     { id: "suggestions" as const, label: "Suggest", icon: Lightbulb },
     { id: "citations" as const, label: "Cite", icon: BookMarked },
@@ -219,7 +216,7 @@ export function StudioPanel({ compact: _compact = false }: { compact?: boolean }
     <aside className="flex h-full min-h-0 w-full flex-col rounded-[28px] bg-white">
       <div className="flex shrink-0 items-start justify-between gap-3 border-b border-zinc-100 px-5 py-5">
         <h1 className="text-[20px] font-bold leading-snug tracking-tight text-zinc-950">
-          Research · Redesign · Voice · Coach
+          Research · Redesign · Voice
         </h1>
         <button
           type="button"
@@ -238,14 +235,8 @@ export function StudioPanel({ compact: _compact = false }: { compact?: boolean }
             type="button"
             onClick={() => {
               if (pro) {
-                const flag =
-                  id === "feedback" ? "feedback_redesign" : "presentation_coach";
-                if (!hasFeature(flag)) {
-                  openUpgrade(
-                    id === "feedback"
-                      ? "Feedback → Redesign is a Pro feature."
-                      : "Presentation Coach is a Pro feature."
-                  );
+                if (!hasFeature("feedback_redesign")) {
+                  openUpgrade("Feedback → Redesign is a Pro feature.");
                   return;
                 }
               }
@@ -261,10 +252,9 @@ export function StudioPanel({ compact: _compact = false }: { compact?: boolean }
           >
             <Icon className="h-3.5 w-3.5" />
             {label}
-            {pro &&
-              !hasFeature(
-                id === "feedback" ? "feedback_redesign" : "presentation_coach"
-              ) && <ProLockIcon className="h-3 w-3 opacity-70" />}
+            {pro && !hasFeature("feedback_redesign") && (
+              <ProLockIcon className="h-3 w-3 opacity-70" />
+            )}
           </button>
         ))}
       </div>
@@ -300,7 +290,7 @@ export function StudioPanel({ compact: _compact = false }: { compact?: boolean }
           ) : (
             <div className="space-y-3">
               <p className="text-sm font-semibold text-zinc-950">
-                Transform an existing deck
+                Transform existing slides
               </p>
               <p className="text-sm text-zinc-500">
                 Import a PPTX or PDF you already have — then redesign it from
@@ -315,12 +305,11 @@ export function StudioPanel({ compact: _compact = false }: { compact?: boolean }
                 }}
               >
                 <FileUp className="h-4 w-4" />
-                Bring existing deck
+                Bring existing slides
               </Button>
             </div>
           ))}
         {panelTab === "feedback" && <FeedbackPanel />}
-        {panelTab === "coach" && <CoachPanel />}
         {panelTab === "visuals" && <VisualAssistantPanel />}
 
         {panelTab === "chat" && (
@@ -376,15 +365,8 @@ export function StudioPanel({ compact: _compact = false }: { compact?: boolean }
                   ~{coachReport.estimatedMinutes} min
                 </p>
                 <p className="mt-1 text-xs text-zinc-500">
-                  Based on word count and slide count for this deck.
+                  Based on word count and slide count for these slides.
                 </p>
-                <button
-                  type="button"
-                  onClick={() => setPanelTab("coach")}
-                  className="mt-2 text-xs font-semibold text-zinc-950 underline-offset-2 hover:underline"
-                >
-                  Open Presentation Coach
-                </button>
               </section>
             )}
 
@@ -392,7 +374,7 @@ export function StudioPanel({ compact: _compact = false }: { compact?: boolean }
               <p className="text-sm font-semibold text-zinc-950">Ask EchoFlow</p>
               <p className="mt-1 text-xs text-zinc-500">
                 {collaborator.active
-                  ? "Collaborating — answer to shape the deck."
+                  ? "Collaborating — answer to shape the slides."
                   : "Describe what you need — or edit by voice."}
               </p>
 
@@ -462,7 +444,7 @@ export function StudioPanel({ compact: _compact = false }: { compact?: boolean }
             </div>
             {designSuggestions.length === 0 ? (
               <p className="rounded-2xl bg-zinc-50 px-4 py-6 text-center text-xs text-zinc-500">
-                No suggestions yet. Build or open a deck, then refresh.
+                No suggestions yet. Build or open slides, then refresh.
               </p>
             ) : (
               designSuggestions.map((s) => (

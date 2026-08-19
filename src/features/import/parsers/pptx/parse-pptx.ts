@@ -88,7 +88,7 @@ export async function parsePptxFile(file: File): Promise<ImportResult> {
   }
 
   const now = new Date().toISOString();
-  const title = file.name.replace(/\.pptx$/i, "") || "Imported deck";
+  const title = file.name.replace(/\.pptx$/i, "") || "Imported slides";
   const meta: PresentationImportMeta = {
     sourceFormat: "pptx",
     sourceFileName: file.name,

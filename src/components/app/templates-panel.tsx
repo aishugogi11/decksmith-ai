@@ -59,7 +59,7 @@ export function TemplatesPanel() {
                 </h2>
                 <p className="mt-1 max-w-xl text-sm text-zinc-500">
                   {DECK_TEMPLATES.length} EchoFlow templates — or describe your
-                  deck in chat for ranked recommendations.
+                  slides in chat for ranked recommendations.
                 </p>
               </div>
               <Button

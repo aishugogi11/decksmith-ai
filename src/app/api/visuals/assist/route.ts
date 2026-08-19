@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "message required" }, { status: 400 });
     }
     const context: VisualDeckContext = body.context ?? {
-      title: "Untitled deck",
+      title: "Untitled slides",
       themeId: "apple",
       designStyle: "modern presentation",
       slide: null,

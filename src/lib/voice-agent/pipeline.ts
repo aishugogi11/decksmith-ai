@@ -17,7 +17,7 @@ export function isVoiceAgentCommand(
 ): boolean {
   const t = text.trim().toLowerCase();
   if (!t) return false;
-  // Don't steal full deck creation
+  // Don't steal full deck creation or template browsing
   if (
     /^(make|create|build|generate)\s+(me\s+)?(a|an)\s+.+\b(pitch|deck|presentation)\b/.test(
       t
@@ -26,6 +26,7 @@ export function isVoiceAgentCommand(
   ) {
     return false;
   }
+  if (/\btemplates?\b/.test(t)) return false;
   if (
     selection.objectId &&
     /^(make it|move it|delete it|enlarge|shrink|minimize|minimise|adjust)/.test(

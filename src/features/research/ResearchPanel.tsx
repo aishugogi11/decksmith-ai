@@ -50,7 +50,7 @@ export function ResearchPanel() {
         {
           id: `msg_${Date.now()}`,
           role: "assistant" as const,
-          content: output?.summary || "Research deck loaded.",
+          content: output?.summary || "Research slides loaded.",
           createdAt: new Date().toISOString(),
         },
       ],
@@ -67,7 +67,7 @@ export function ResearchPanel() {
             <ProBadge />
           </div>
           <p className="mt-1 text-sm text-zinc-500">
-            Evidence in — outline and citations out. Build a new deck, or
+            Evidence in — outline and citations out. Build new slides, or
             strengthen the one on the canvas.
           </p>
         </div>
@@ -96,7 +96,7 @@ export function ResearchPanel() {
               onClick={() => {
                 setIntent("strengthen");
                 const seed =
-                  presentation.title !== "Untitled deck"
+                  presentation.title !== "Untitled slides"
                     ? presentation.title
                     : presentation.slides[0]?.title || "";
                 if (seed) setInput(`Statistics and citations for: ${seed}`);
@@ -108,7 +108,7 @@ export function ResearchPanel() {
                   : "text-zinc-500 hover:text-zinc-800"
               )}
             >
-              Strengthen this deck
+              Strengthen these slides
             </button>
           </div>
 
@@ -123,7 +123,7 @@ export function ResearchPanel() {
             {[
               "Recent productivity statistics for investors",
               "Climate policy facts with citations for a class presentation",
-              "B2B SaaS market size and growth for a sales deck",
+              "B2B SaaS market size and growth for a sales slides",
             ].map((example) => (
               <button
                 key={example}
@@ -142,7 +142,7 @@ export function ResearchPanel() {
               onChange={(e) => setInput(e.target.value)}
               placeholder={
                 intent === "strengthen"
-                  ? "Evidence to find for this deck…"
+                  ? "Evidence to find for these slides…"
                   : "Research topic — e.g. clinical documentation trends"
               }
               className="min-w-0 flex-1 bg-transparent text-sm text-zinc-950 placeholder:text-zinc-400 focus:outline-none"

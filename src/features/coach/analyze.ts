@@ -128,7 +128,7 @@ function buildRecommendations(
   if (presentation.slides.length > 20) {
     out.push({
       id: uid("crec"),
-      message: `This deck is ${presentation.slides.length} slides — consider tightening for a shorter talk.`,
+      message: `These slides is ${presentation.slides.length} slides — consider tightening for a shorter talk.`,
       severity: "info",
       actionLabel: "Apply",
       command: {

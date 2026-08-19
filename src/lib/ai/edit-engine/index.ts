@@ -31,6 +31,8 @@ export function isLiveEditCommand(text: string): boolean {
   const t = text.trim().toLowerCase();
   if (!t) return false;
   if (CREATE_DECK.test(t) && t.length < 90) return false;
+  // “Make/create templates for …” belongs to the template gallery, not live edit
+  if (/\btemplates?\b/.test(t)) return false;
 
   // Follow-ups that rely on conversation context (“actually put it on slide 8”)
   if (

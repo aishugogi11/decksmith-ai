@@ -8,7 +8,11 @@ import {
 } from "@/lib/ai/collaborator";
 import { coachPresentation, formatCoachReply, type CoachReport } from "@/lib/ai/coach";
 import { customizeTemplateWithAI } from "@/lib/ai/customize-template";
-import { analyzePresentationIntent, isTemplateDiscoveryIntent } from "@/lib/ai/intent";
+import {
+  analyzePresentationIntent,
+  isTemplateDiscoveryIntent,
+  isTemplatePickerRequest,
+} from "@/lib/ai/intent";
 import { recommendTemplates } from "@/lib/ai/recommend";
 import {
   applyResearchToPresentation,
@@ -95,6 +99,17 @@ export async function runOrchestrator(
   const collaborator = ctx.collaborator.active
     ? ctx.collaborator
     : emptyCollaboratorState();
+
+  // 0) Explicit template browse/pick — always open the gallery (before voice edits)
+  if (isTemplatePickerRequest(text) && !ctx.collaborator.active) {
+    return {
+      type: "recommend",
+      prompt: text,
+      reply:
+        "Here are templates that fit — preview them and pick one to customize.",
+      collaborator,
+    };
+  }
 
   // 1) Command-based voice/text editing (JSON actions → deterministic execute)
   if (ctx.presentation.slides.length > 0 && !ctx.collaborator.active) {
@@ -195,7 +210,18 @@ export async function runOrchestrator(
     return buildFromPrompt(turn.prompt, turn.state);
   }
 
-  // 3) Start interview for vague creates
+  // 3) Explicit create/find → show selectable templates (before vague interview)
+  if (isTemplateDiscoveryIntent(text) && isCreateDeckRequest(text)) {
+    return {
+      type: "recommend",
+      prompt: text,
+      reply:
+        "Here are templates that fit your brief — preview them and pick one to customize.",
+      collaborator,
+    };
+  }
+
+  // 4) Start interview for vague creates
   if (isVagueCreateRequest(text)) {
     const turn = startCollaboration(text);
     if (turn.kind === "question") {
@@ -207,17 +233,6 @@ export async function runOrchestrator(
       };
     }
     return buildFromPrompt(turn.prompt, turn.state);
-  }
-
-  // 4) Create / find a deck → always show selectable templates
-  if (isTemplateDiscoveryIntent(text) && isCreateDeckRequest(text)) {
-    return {
-      type: "recommend",
-      prompt: text,
-      reply:
-        "Here are templates that fit your brief — preview them and pick one to customize.",
-      collaborator,
-    };
   }
 
   // 5) Other discovery phrasing (find/recommend templates) → same picker
@@ -236,8 +251,9 @@ export async function runOrchestrator(
 /** “Create/make a pitch deck …” style requests — show template picker. */
 function isCreateDeckRequest(text: string): boolean {
   const t = text.trim().toLowerCase();
+  if (isTemplatePickerRequest(t)) return true;
   return (
-    /\b(create|make|build|generate|i need|i want)\b/.test(t) &&
+    /\b(create|make|build|generate|provide|show|i need|i want)\b/.test(t) &&
     /\b(pitch|deck|presentation|slides?|template)\b/.test(t)
   );
 }

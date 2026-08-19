@@ -70,7 +70,7 @@ export function ImportAnalysisPanel({
     <div className="space-y-5">
       <div>
         <p className="text-sm font-bold text-zinc-950">
-          Deck ready to transform
+          Slides ready to transform
         </p>
         <p className="mt-1 text-xs leading-relaxed text-zinc-500">
           You brought existing work into EchoFlow — now redesign it with
@@ -107,7 +107,7 @@ export function ImportAnalysisPanel({
               Research Mode
             </span>
             <span className="mt-0.5 block text-[11px] leading-snug text-zinc-500">
-              Find current stats, sources, and citations to strengthen this deck
+              Find current stats, sources, and citations to strengthen these slides
             </span>
           </span>
         </button>

@@ -22,7 +22,7 @@ const WORKFLOW_EXAMPLES = [
   {
     label: "Instagram",
     source: "instagram" as const,
-    text: "Redesign this deck to be suitable as an Instagram post carousel — square frames, short captions, bold titles, one idea per slide.",
+    text: "Redesign these slides to be suitable as an Instagram post carousel — square frames, short captions, bold titles, one idea per slide.",
   },
   {
     label: "Student",
@@ -135,7 +135,7 @@ export function FeedbackPanel() {
             <ProBadge />
           </div>
           <p className="mt-1 text-xs text-zinc-500">
-            Turn comments on an existing deck into previewable redesign actions —
+            Turn comments on existing slides into previewable redesign actions —
             then apply what you want.
           </p>
           <button
@@ -208,7 +208,7 @@ export function FeedbackPanel() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             rows={6}
-            placeholder={`Paste feedback on this deck…\n\nExample:\nSlides 3–5 are too text-heavy.\nAdd recent statistics.\nImprove the conclusion.`}
+            placeholder={`Paste feedback on these slides…\n\nExample:\nSlides 3–5 are too text-heavy.\nAdd recent statistics.\nImprove the conclusion.`}
             className="w-full resize-none rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-[13px] leading-relaxed text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:bg-white focus:outline-none"
           />
 

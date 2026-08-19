@@ -36,7 +36,7 @@ function slideContext(slide: Slide, index: number): VisualSlideContext {
   };
 }
 
-/** Infer a light audience hint from deck title / slide language. */
+/** Infer a light audience hint from slides title / slide language. */
 function audienceHint(presentation: Presentation, slide: Slide | null): string | undefined {
   const blob = [
     presentation.title,
@@ -67,7 +67,7 @@ export function buildVisualContext(
     idx >= 0 ? presentation.slides[idx] : presentation.slides[0] ?? null;
 
   return {
-    title: presentation.title || "Untitled deck",
+    title: presentation.title || "Untitled slides",
     themeId: presentation.themeId,
     designStyle:
       THEME_STYLE[presentation.themeId] ??
@@ -79,7 +79,7 @@ export function buildVisualContext(
 
 export function summarizeContext(ctx: VisualDeckContext): string {
   const s = ctx.slide;
-  if (!s) return `Deck “${ctx.title}” · ${ctx.designStyle}`;
+  if (!s) return `Slides “${ctx.title}” · ${ctx.designStyle}`;
   const bullets =
     s.bullets.length > 0
       ? `Bullets: ${s.bullets.slice(0, 4).join(" · ")}`

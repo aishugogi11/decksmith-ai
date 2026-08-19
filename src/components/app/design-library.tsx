@@ -206,7 +206,7 @@ export function DesignLibrary() {
   async function runGenerate() {
     const text =
       query.trim() ||
-      "Create a modern investor pitch deck for a healthcare startup";
+      "Create modern investor pitch slides for a healthcare startup";
     setQuery(text);
     await findTemplates(text);
     setTemplatesOpen(false);
@@ -570,7 +570,7 @@ export function DesignLibrary() {
                       Bring existing work
                     </h3>
                     <p className="mt-1 text-sm text-zinc-500">
-                      Upload a deck you already have. EchoFlow becomes an
+                      Upload slides you already have. EchoFlow becomes an
                       editor — redesign from feedback, research stronger evidence,
                       or voice-transform the whole story. Only import files you
                       have rights to use.
@@ -766,7 +766,7 @@ function ProjectsPanel() {
       <div>
         <h3 className="text-base font-bold text-zinc-950">Projects</h3>
         <p className="mt-1 text-sm text-zinc-500">
-          Name your deck and save it locally — reopen anytime from this list.
+          Name your slides and save them locally — reopen anytime from this list.
         </p>
       </div>
 
@@ -814,7 +814,7 @@ function ProjectsPanel() {
         </p>
         {savedProjects.length === 0 ? (
           <p className="mt-3 text-sm text-zinc-500">
-            No saved projects yet. Name this deck and click Save project.
+            No saved projects yet. Name these slides and click Save project.
           </p>
         ) : (
           <ul className="mt-3 space-y-2">

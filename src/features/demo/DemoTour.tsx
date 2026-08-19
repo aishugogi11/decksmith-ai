@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
-  GraduationCap,
   MessageSquareWarning,
   Mic,
   Sparkles,
@@ -24,7 +23,7 @@ import {
 import { usePresentationStore } from "@/store/presentation-store";
 import { cn } from "@/lib/utils";
 
-type StepId = "welcome" | "import" | "redesign" | "voice" | "coach" | "done";
+type StepId = "welcome" | "import" | "redesign" | "voice" | "done";
 
 const STEPS: {
   id: StepId;
@@ -35,7 +34,7 @@ const STEPS: {
   {
     id: "welcome",
     title: "EchoFlow in 60 seconds",
-    body: "Most tools generate a new deck. We’ll transform one you already have — Import → Redesign → Voice → Coach.",
+    body: "Most tools generate new slides. We’ll transform ones you already have — Import → Redesign → Voice.",
     icon: Sparkles,
   },
   {
@@ -55,12 +54,6 @@ const STEPS: {
     title: "3 · Voice refinement",
     body: "Same command pipeline as the toolbar. Try “Create a textbox” or “Make this look like an Apple Keynote.”",
     icon: Mic,
-  },
-  {
-    id: "coach",
-    title: "4 · Presentation Coach",
-    body: "Check delivery readiness — pacing, weak close, Apply / Rewrite fixes on the live deck.",
-    icon: GraduationCap,
   },
   {
     id: "done",
@@ -106,7 +99,7 @@ export function DemoTour({ active }: { active: boolean }) {
       },
       analysis,
       error: null,
-      progressMessage: "Demo deck ready",
+      progressMessage: "Demo slides ready",
       modalOpen: false,
     });
 
@@ -145,9 +138,6 @@ export function DemoTour({ active }: { active: boolean }) {
     }
     if (nextId === "voice") {
       setPanelTab("chat");
-    }
-    if (nextId === "coach") {
-      setPanelTab("coach");
     }
     if (nextId === "done") {
       setPanelTab("import");

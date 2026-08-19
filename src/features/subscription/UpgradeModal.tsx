@@ -5,7 +5,7 @@ import { useSubscriptionStore } from "@/features/subscription/store";
 import { FREE_LIMITS } from "@/features/subscription/types";
 
 const PRO_PERKS = [
-  "Feedback → Redesign on imported decks",
+  "Feedback → Redesign on imported slidess",
   "Research Mode — stats, sources & citations",
   "Unlimited generations & voice editing",
   "Presentation Coach with Apply actions",

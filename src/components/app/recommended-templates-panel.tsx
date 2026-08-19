@@ -1,19 +1,13 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
-  Sparkles,
-  X,
-} from "lucide-react";
-import { useState } from "react";
+import { Loader2, Sparkles, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { usePresentationStore } from "@/store/presentation-store";
 import { cn } from "@/lib/utils";
 
-/** Preview carousel of AI-ranked templates — does not replace the editor. */
+/** Chooser for ranked / featured template slides — does not replace the editor. */
 export function RecommendedTemplatesPanel() {
   const open = usePresentationStore((s) => s.recommendationsOpen);
   const setOpen = usePresentationStore((s) => s.setRecommendationsOpen);
@@ -27,13 +21,16 @@ export function RecommendedTemplatesPanel() {
   const isRecommending = usePresentationStore((s) => s.isRecommending);
 
   const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (!open) return;
+    const i = matches.findIndex((m) => m.template.id === selectedId);
+    setIndex(i >= 0 ? i : 0);
+  }, [open, matches, selectedId]);
+
   const safeIndex = matches.length ? Math.min(index, matches.length - 1) : 0;
   const active = matches[safeIndex];
-
-  function go(delta: number) {
-    if (!matches.length) return;
-    setIndex((i) => (i + delta + matches.length) % matches.length);
-  }
+  const browsingExamples = prompt === "Slide template examples";
 
   return (
     <AnimatePresence>
@@ -41,7 +38,7 @@ export function RecommendedTemplatesPanel() {
         <>
           <motion.button
             type="button"
-            aria-label="Close recommendations"
+            aria-label="Close template chooser"
             className="fixed inset-0 z-40 bg-zinc-950/30 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -51,27 +48,31 @@ export function RecommendedTemplatesPanel() {
           <motion.div
             role="dialog"
             aria-modal
-            aria-label="Recommended templates"
+            aria-label="Choose template slides"
             initial={{ opacity: 0, y: 20, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 320, damping: 30 }}
-            className="fixed inset-x-3 top-[8vh] z-50 mx-auto flex max-h-[84vh] max-w-3xl flex-col overflow-hidden rounded-[28px] border border-zinc-200 bg-white shadow-[0_40px_100px_rgba(0,0,0,0.18)] sm:inset-x-6"
+            className="fixed inset-x-3 top-[6vh] z-50 mx-auto flex max-h-[88vh] max-w-4xl flex-col overflow-hidden rounded-[28px] border border-zinc-200 bg-white shadow-[0_40px_100px_rgba(0,0,0,0.18)] sm:inset-x-6"
           >
             <header className="flex items-start justify-between gap-3 border-b border-zinc-100 px-5 py-4 sm:px-6">
               <div>
                 <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
                   <Sparkles className="h-3.5 w-3.5" />
-                  Recommended templates
+                  {browsingExamples
+                    ? "Template slides"
+                    : "Recommended templates"}
                 </p>
                 <h2 className="mt-1 text-xl font-bold tracking-tight text-zinc-950 sm:text-2xl">
-                  {intent?.summary || "Best matches for your brief"}
+                  {intent?.summary || "Choose template slides"}
                 </h2>
-                {prompt && (
-                  <p className="mt-1 line-clamp-2 max-w-xl text-sm text-zinc-500">
-                    “{prompt}”
-                  </p>
-                )}
+                <p className="mt-1 max-w-xl text-sm text-zinc-500">
+                  {browsingExamples
+                    ? "Pick a set of slides to start from — then customize."
+                    : prompt
+                      ? `Matches for “${prompt}”`
+                      : "Pick one to load into the studio."}
+                </p>
               </div>
               <Button
                 variant="ghost"
@@ -87,78 +88,19 @@ export function RecommendedTemplatesPanel() {
               {isRecommending ? (
                 <div className="flex flex-col items-center justify-center gap-3 py-20 text-sm text-zinc-500">
                   <Loader2 className="h-6 w-6 animate-spin" />
-                  Analyzing intent and ranking templates…
+                  Finding template slides for you…
                 </div>
               ) : matches.length === 0 ? (
                 <p className="py-16 text-center text-sm text-zinc-500">
-                  No strong matches. Try a clearer type, audience, or style.
+                  No templates yet. Try Templates in the rail, or describe what
+                  you need in chat.
                 </p>
               ) : (
-                <>
-                  {/* Carousel */}
-                  <div className="relative">
-                    <div
-                      className="overflow-hidden rounded-2xl border border-zinc-200"
-                      style={{ background: active.template.preview }}
-                    >
-                      <div className="flex min-h-[180px] flex-col justify-end bg-gradient-to-t from-black/70 via-black/25 to-transparent p-5 sm:min-h-[220px]">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/70">
-                          {Math.round(active.score * 100)}% match ·{" "}
-                          {active.template.slideCount} slides ·{" "}
-                          {active.template.source}
-                        </p>
-                        <h3 className="mt-1 text-2xl font-bold text-white">
-                          {active.template.name}
-                        </h3>
-                        <p className="mt-1 max-w-lg text-sm text-white/85">
-                          {active.template.description}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="absolute inset-y-0 left-2 flex items-center">
-                      <button
-                        type="button"
-                        onClick={() => go(-1)}
-                        className="grid h-9 w-9 place-items-center rounded-full bg-white/90 text-zinc-800 shadow"
-                        aria-label="Previous template"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <div className="absolute inset-y-0 right-2 flex items-center">
-                      <button
-                        type="button"
-                        onClick={() => go(1)}
-                        className="grid h-9 w-9 place-items-center rounded-full bg-white/90 text-zinc-800 shadow"
-                        aria-label="Next template"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {active.reasons.map((r) => (
-                      <span
-                        key={r}
-                        className="rounded-lg bg-zinc-100 px-2 py-1 text-[11px] text-zinc-600"
-                      >
-                        {r}
-                      </span>
-                    ))}
-                    {active.template.visualStyle.slice(0, 2).map((s) => (
-                      <span
-                        key={s}
-                        className="rounded-lg bg-zinc-100 px-2 py-1 text-[11px] text-zinc-600"
-                      >
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Thumb strip */}
-                  <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-                    {matches.map((m, i) => (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {matches.map((m, i) => {
+                    const selected =
+                      i === safeIndex || selectedId === m.template.id;
+                    return (
                       <button
                         key={m.template.id}
                         type="button"
@@ -167,46 +109,56 @@ export function RecommendedTemplatesPanel() {
                           selectRecommendation(m.template.id);
                         }}
                         className={cn(
-                          "w-36 shrink-0 overflow-hidden rounded-xl border text-left transition",
-                          i === safeIndex || selectedId === m.template.id
+                          "overflow-hidden rounded-2xl border text-left transition",
+                          selected
                             ? "border-zinc-950 ring-2 ring-zinc-950"
                             : "border-zinc-200 hover:border-zinc-400"
                         )}
                       >
                         <div
-                          className="h-14 w-full"
+                          className="aspect-[16/10] w-full"
                           style={{ background: m.template.preview }}
                         />
-                        <div className="p-2">
-                          <p className="truncate text-[11px] font-semibold text-zinc-900">
+                        <div className="space-y-1 p-3">
+                          <p className="truncate text-sm font-semibold text-zinc-950">
                             {m.template.name}
                           </p>
-                          <p className="text-[10px] text-zinc-500">
-                            {Math.round(m.score * 100)}% · {m.template.slideCount}{" "}
-                            slides
+                          <p className="line-clamp-2 text-[11px] leading-snug text-zinc-500">
+                            {m.template.description}
+                          </p>
+                          <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-400">
+                            {m.template.slideCount} slides ·{" "}
+                            {m.template.presentationType}
                           </p>
                         </div>
                       </button>
-                    ))}
-                  </div>
-                </>
+                    );
+                  })}
+                </div>
               )}
             </div>
 
             {active && !isRecommending && (
               <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 px-5 py-4 sm:px-6">
-                <p className="text-xs text-zinc-500">
-                  Layouts stay intact — Customize fills titles, copy, and media hints.
-                </p>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-zinc-950">
+                    {active.template.name}
+                  </p>
+                  <p className="text-xs text-zinc-500">
+                    Layouts stay intact — Customize fills titles and copy.
+                  </p>
+                </div>
                 <div className="flex gap-2">
                   <Button
                     variant="secondary"
                     onClick={() => {
                       selectRecommendation(active.template.id);
-                      void customizeWithAI(active.template.id, { loadOnly: true });
+                      void customizeWithAI(active.template.id, {
+                        loadOnly: true,
+                      });
                     }}
                   >
-                    Use blank structure
+                    Use structure
                   </Button>
                   <Button
                     onClick={() => {
